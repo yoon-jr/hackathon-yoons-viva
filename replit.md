@@ -10,6 +10,20 @@ The application targets Korean B2B clients (snack manufacturers, marketing agenc
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### Company Analytics System (2025-11-07)
+- **Database**: Added normalized company data model (brands, products, annualSales tables)
+- **Data Loading**: JSON ingestion script loaded 69 products, 15 brands, 344 annual sales records
+- **Analytics Engine** (server/analytics.ts):
+  - Optimized batch queries (2 parallel DB calls instead of 345+ sequential)
+  - CAGR and YoY calculations for market trend analysis
+  - Brand-level aggregations with market share
+- **Caching**: 15-minute TTL in-memory cache for analytics endpoints
+- **API Endpoints**: /api/company/insights, /api/company/products, /api/company/brands
+- **Dashboard**: Company market insights section with AI-powered summary
+- **Future**: Prepared for RAG embedding layer (OpenAI text-embedding-3-large) once product descriptions are enriched
+
 ## System Architecture
 
 ### Frontend Architecture

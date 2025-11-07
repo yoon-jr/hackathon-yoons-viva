@@ -824,6 +824,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Company analytics endpoints
+  app.get("/api/company/insights", async (req, res) => {
+    try {
+      console.log("[CompanyInsights] Generating market insights...");
+      const { cache, CACHE_TTL } = await import("./cache");
+      const { getMarketInsights, generateInsightsSummary } = await import("./analytics");
+      
+      const cacheKey = "market-insights";
+      const cached = cache.get(cacheKey);
+      
+      if (cached) {
+        console.log("[CompanyInsights] Returning cached insights");
+        return res.json(cached);
+      }
+      
+      const insights = await getMarketInsights();
+      const summary = await generateInsightsSummary(insights);
+      
+      const result = {
+        ...insights,
+        summary,
+      };
+      
+      // Cache for 15 minutes
+      cache.set(cacheKey, result, CACHE_TTL.MEDIUM);
+      
+      res.json(result);
+    } catch (error) {
+      console.error("[CompanyInsights] Error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Server error" 
+      });
+    }
+  });
+
+  app.get("/api/company/products", async (req, res) => {
+    try {
+      const { cache, CACHE_TTL } = await import("./cache");
+      const { getProductTrends } = await import("./analytics");
+      
+      const cacheKey = "product-trends";
+      const cached = cache.get(cacheKey);
+      
+      if (cached) {
+        return res.json(cached);
+      }
+      
+      const trends = await getProductTrends();
+      cache.set(cacheKey, trends, CACHE_TTL.MEDIUM);
+      
+      res.json(trends);
+    } catch (error) {
+      console.error("[CompanyProducts] Error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Server error" 
+      });
+    }
+  });
+
+  app.get("/api/company/brands", async (req, res) => {
+    try {
+      const { cache, CACHE_TTL } = await import("./cache");
+      const { getBrandAnalytics } = await import("./analytics");
+      
+      const cacheKey = "brand-analytics";
+      const cached = cache.get(cacheKey);
+      
+      if (cached) {
+        return res.json(cached);
+      }
+      
+      const brands = await getBrandAnalytics();
+      cache.set(cacheKey, brands, CACHE_TTL.MEDIUM);
+      
+      res.json(brands);
+    } catch (error) {
+      console.error("[CompanyBrands] Error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Server error" 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

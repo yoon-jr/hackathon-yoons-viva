@@ -84,6 +84,59 @@ export const insertProductSalesSchema = createInsertSchema(productSales).omit({
 export type ProductSales = typeof productSales.$inferSelect;
 export type InsertProductSales = z.infer<typeof insertProductSalesSchema>;
 
+// Company data model for enterprise sales analytics
+export const brands = pgTable("brands", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const products = pgTable("products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  brandId: varchar("brand_id").references(() => brands.id),
+  brandName: text("brand_name"), // Denormalized for quick access
+  category: text("category"), // Product category
+  description: text("description"), // For future AI enrichment
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const annualSales = pgTable("annual_sales", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").notNull().references(() => products.id),
+  year: text("year").notNull(), // "2020", "2021", etc.
+  sales: text("sales").notNull(), // Sales amount as string to preserve format
+  salesNumeric: text("sales_numeric"), // Numeric value for calculations
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Schema validators
+export const insertBrandSchema = createInsertSchema(brands).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertProductSchema = createInsertSchema(products).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAnnualSalesSchema = createInsertSchema(annualSales).omit({
+  id: true,
+  createdAt: true,
+});
+
+// TypeScript types
+export type Brand = typeof brands.$inferSelect;
+export type InsertBrand = z.infer<typeof insertBrandSchema>;
+
+export type Product = typeof products.$inferSelect;
+export type InsertProduct = z.infer<typeof insertProductSchema>;
+
+export type AnnualSales = typeof annualSales.$inferSelect;
+export type InsertAnnualSales = z.infer<typeof insertAnnualSalesSchema>;
+
 // Frontend-specific types
 export type AgeGroup = "알파세대" | "Z세대" | "밀레니얼세대" | "X세대";
 export type MarketingSeason = "수능시즌" | "여름" | "연말" | "명절" | "기타";

@@ -15,7 +15,10 @@ import {
   TrendingDown,
   Minus,
   Sparkles,
+  Building2,
+  BarChart3,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import type { Project, ProductSales } from "@shared/schema";
@@ -36,6 +39,36 @@ export default function Dashboard() {
 
   const { data: topProducts = [] } = useQuery<ProductSales[]>({
     queryKey: ["/api/sales/top"],
+  });
+
+  interface ProductTrend {
+    productId: string;
+    productName: string;
+    brandName: string;
+    cagr: number;
+  }
+
+  interface BrandAnalytics {
+    brandId: string;
+    brandName: string;
+    totalSales2024: number;
+    marketShare: number;
+    productCount: number;
+  }
+
+  interface CompanyInsights {
+    totalMarketSize2024: number;
+    totalMarketSize2020: number;
+    marketCAGR: number;
+    topGrowingProducts: ProductTrend[];
+    topDecliningProducts: ProductTrend[];
+    topBrands: BrandAnalytics[];
+    summary: string;
+  }
+
+  const { data: companyInsights, isLoading: insightsLoading, error: insightsError } = useQuery<CompanyInsights>({
+    queryKey: ["/api/company/insights"],
+    staleTime: 1000 * 60 * 10, // Cache for 10 minutes
   });
 
   const trendingCount = salesData.filter((s) => s.trendScore === "상승").length;
@@ -122,6 +155,97 @@ export default function Dashboard() {
               <p className="text-sm text-muted-foreground mt-2">제품</p>
             </CardContent>
           </Card>
+        </div>
+
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <Building2 className="w-8 h-8 text-orange-600" />
+            <h2 className="text-3xl font-bold font-sans">기업 시장 인사이트</h2>
+          </div>
+
+          {insightsLoading ? (
+            <div className="text-center py-12">
+              <div className="text-muted-foreground">시장 분석 중...</div>
+            </div>
+          ) : insightsError ? (
+            <Card className="border shadow-md rounded-2xl">
+              <CardContent className="py-12 text-center">
+                <p className="text-destructive">데이터를 불러올 수 없습니다.</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  잠시 후 다시 시도해주세요.
+                </p>
+              </CardContent>
+            </Card>
+          ) : companyInsights ? (
+            <>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="border shadow-md rounded-2xl bg-gradient-to-br from-orange-50 to-white">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-orange-600">
+                    <BarChart3 className="w-5 h-5" />
+                    전체 시장 규모
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-bold text-orange-600">
+                    {(companyInsights.totalMarketSize2024 / 10000).toFixed(1)}
+                    <span className="text-xl ml-1">억원</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">2024년 기준</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border shadow-md rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    연평균 성장률
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-4xl font-bold ${companyInsights.marketCAGR > 0 ? 'text-emerald-600' : 'text-destructive'}`}>
+                    {companyInsights.marketCAGR > 0 ? '+' : ''}
+                    {companyInsights.marketCAGR.toFixed(2)}%
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">2020-2024 CAGR</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border shadow-md rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5" />
+                    AI 분석 제품
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-bold">
+                    {companyInsights.topGrowingProducts?.length || 0}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">급성장 제품</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="border shadow-md rounded-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-orange-600" />
+                  AI 시장 분석 요약
+                </CardTitle>
+                <CardDescription>
+                  전체 시장 트렌드와 주요 인사이트
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="prose prose-sm max-w-none">
+                  <ReactMarkdown>{companyInsights.summary}</ReactMarkdown>
+                </div>
+              </CardContent>
+            </Card>
+            </>
+          ) : null}
         </div>
 
         <div className="space-y-4">
