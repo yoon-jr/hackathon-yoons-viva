@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { insertProjectSchema, type InsertProject } from "@shared/schema";
+import { insertProjectSchema, type InsertProject, type Project } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -37,9 +37,10 @@ export default function Survey() {
 
   const createProjectMutation = useMutation({
     mutationFn: async (data: InsertProject) => {
-      return await apiRequest<{ id: string }>("POST", "/api/projects", data);
+      return await apiRequest<Project>("POST", "/api/projects", data);
     },
     onSuccess: (data) => {
+      console.log("Project created:", data);
       setLocation(`/chat/${data.id}`);
     },
     onError: () => {

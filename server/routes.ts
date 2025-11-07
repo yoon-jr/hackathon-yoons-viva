@@ -13,26 +13,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const project = await storage.createProject(data);
       
       // Create initial AI greeting message
-      const greeting = await generateMarketingResponse(
-        [],
-        {
-          productName: project.productName,
-          targetAge: project.targetAge,
-          marketingSeason: project.marketingSeason,
-          currentStatus: project.currentStatus,
-        }
-      );
-      
-      await storage.createMessage({
-        projectId: project.id,
-        role: "assistant",
-        content: greeting,
-      });
+      try {
+        const greeting = await generateMarketingResponse(
+          [],
+          {
+            productName: project.productName,
+            targetAge: project.targetAge,
+            marketingSeason: project.marketingSeason,
+            currentStatus: project.currentStatus,
+          }
+        );
+        
+        await storage.createMessage({
+          projectId: project.id,
+          role: "assistant",
+          content: greeting,
+        });
+      } catch (aiError) {
+        console.error("AI greeting generation failed:", aiError);
+        // Continue anyway - greeting can be generated later
+        await storage.createMessage({
+          projectId: project.id,
+          role: "assistant",
+          content: `안녕하세요! ${project.productName}의 역바이럴 마케팅을 도와드리겠습니다. 어떤 아이디어를 함께 발전시켜볼까요?`,
+        });
+      }
       
       res.json(project);
     } catch (error) {
       console.error("Error creating project:", error);
-      res.status(400).json({ error: "Invalid request" });
+      res.status(500).json({ error: error instanceof Error ? error.message : "Server error" });
     }
   });
 

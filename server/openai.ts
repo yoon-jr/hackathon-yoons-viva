@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { Buffer } from "node:buffer";
 import pLimit from "p-limit";
-import pRetry from "p-retry";
+import pRetry, { AbortError } from "p-retry";
 
 // This is using Replit's AI Integrations service, which provides OpenAI-compatible API access without requiring your own OpenAI API key.
 const openai = new OpenAI({
@@ -64,7 +64,7 @@ export async function generateMarketingResponse(
         if (isRateLimitError(error)) {
           throw error;
         }
-        throw new pRetry.AbortError(error);
+        throw new AbortError(error);
       }
     },
     {
@@ -101,22 +101,22 @@ export async function generateMarketingStrategies(
 
 대화 요약: ${conversationSummary}
 
-다음 4가지 타입의 전략을 JSON 배열로 반환하세요:
-1. 콜라보: 캐릭터, 브랜드, 연예인과의 협업 전략
-2. 네이밍: 밈화 가능한 제품명이나 슬로건 전략
-3. 캠페인: SNS 챌린지, 이벤트 등 캠페인 아이디어
-4. 시즌마케팅: 시즌에 특화된 한정판/이벤트 전략
+다음 4가지 타입의 전략을 JSON 객체로 반환하세요. "strategies" 키 아래에 배열을 넣어주세요:
 
-각 전략은 다음 형식으로:
 {
-  "type": "콜라보" | "네이밍" | "캠페인" | "시즌마케팅",
-  "title": "전략 제목 (짧고 임팩트있게)",
-  "description": "한 문장 요약",
-  "details": "구체적인 실행 방법 (3-5개 스텝)",
-  "hashtags": "#해시태그1 #해시태그2 #해시태그3"
+  "strategies": [
+    {
+      "type": "콜라보",
+      "title": "전략 제목 (짧고 임팩트있게)",
+      "description": "한 문장 요약",
+      "details": "구체적인 실행 방법 (3-5개 스텝)",
+      "hashtags": "#해시태그1 #해시태그2 #해시태그3"
+    },
+    ... (네이밍, 캠페인, 시즌마케팅 전략 추가)
+  ]
 }
 
-배열만 반환하세요. 다른 텍스트는 포함하지 마세요.`;
+반드시 위 JSON 형식으로만 반환하세요.`;
 
   return await pRetry(
     async () => {
@@ -143,7 +143,7 @@ export async function generateMarketingStrategies(
         if (isRateLimitError(error)) {
           throw error;
         }
-        throw new pRetry.AbortError(error);
+        throw new AbortError(error);
       }
     },
     {
@@ -178,7 +178,7 @@ export async function generateMarketingImage(
         if (isRateLimitError(error)) {
           throw error;
         }
-        throw new pRetry.AbortError(error);
+        throw new AbortError(error);
       }
     },
     {
