@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ArrowLeft, Download, Share2, Star, Type, Megaphone, Calendar, Loader2 } from "lucide-react";
 import { type Strategy, type Project } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import logoImage from "@assets/image_1762502653328.png";
 
 const strategyIcons = {
   "콜라보": Star,
@@ -81,7 +82,12 @@ export default function Results() {
             돌아가기
           </Button>
           <div className="text-center">
-            <h1 className="text-xl font-sans font-bold text-primary">ViVa</h1>
+            <img 
+              src={logoImage} 
+              alt="ViVa" 
+              className="h-10 mx-auto mb-1"
+              data-testid="logo-image"
+            />
             {project && (
               <p className="text-sm text-muted-foreground">{project.productName}</p>
             )}
@@ -120,7 +126,7 @@ export default function Results() {
               return (
                 <Card
                   key={strategy.id}
-                  className="border-3 hover-elevate hover:shadow-lg transition-all cursor-pointer"
+                  className="border shadow-sm hover:shadow-md transition-all cursor-pointer rounded-2xl"
                   onClick={() => setSelectedStrategy(strategy)}
                   data-testid={`card-strategy-${strategy.id}`}
                 >

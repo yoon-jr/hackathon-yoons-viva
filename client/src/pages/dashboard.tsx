@@ -7,6 +7,7 @@ import { ArrowLeft, TrendingUp, TrendingDown, Minus, Sparkles } from "lucide-rea
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import type { Project, ProductSales } from "@shared/schema";
+import logoImage from "@assets/image_1762502653328.png";
 
 export default function Dashboard() {
   const { data: projects = [], isLoading: projectsLoading } = useQuery<Project[]>({
@@ -26,7 +27,7 @@ export default function Dashboard() {
   const stableCount = salesData.filter(s => s.trendScore === "유지").length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
           <Link href="/">
@@ -35,8 +36,14 @@ export default function Dashboard() {
               홈으로
             </Button>
           </Link>
+          <img 
+            src={logoImage} 
+            alt="ViVa" 
+            className="h-10"
+            data-testid="logo-image"
+          />
           <Link href="/survey">
-            <Button className="gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600" data-testid="button-new-project">
+            <Button className="gap-2" data-testid="button-new-project">
               <Sparkles className="w-4 h-4" />
               새 프로젝트
             </Button>
@@ -44,7 +51,7 @@ export default function Dashboard() {
         </div>
 
         <div className="text-center space-y-4">
-          <h1 className="text-5xl font-black font-sans text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-400 dark:to-red-400" data-testid="text-dashboard-title">
+          <h1 className="text-4xl font-bold font-sans" data-testid="text-dashboard-title">
             대시보드
           </h1>
           <p className="text-lg text-muted-foreground">
@@ -53,7 +60,7 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="border-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <Card className="border shadow-sm rounded-2xl">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-emerald-600">
                 <TrendingUp className="w-5 h-5" />
@@ -66,9 +73,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <Card className="border shadow-sm rounded-2xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-blue-600">
+              <CardTitle className="flex items-center gap-2 text-muted-foreground">
                 <Minus className="w-5 h-5" />
                 유지
               </CardTitle>
@@ -79,9 +86,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <Card className="border shadow-sm rounded-2xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-600">
+              <CardTitle className="flex items-center gap-2 text-destructive">
                 <TrendingDown className="w-5 h-5" />
                 하락 트렌드
               </CardTitle>
@@ -97,7 +104,7 @@ export default function Dashboard() {
           <h2 className="text-3xl font-bold font-sans">인기 과자 TOP 5</h2>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {topProducts.slice(0, 5).map((product, index) => (
-              <Card key={product.id} className="border-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid={`card-top-product-${index}`}>
+              <Card key={product.id} className="border shadow-sm rounded-2xl" data-testid={`card-top-product-${index}`}>
                 <CardHeader className="pb-2">
                   <div className="text-3xl font-black text-center text-orange-600">{product.rank}</div>
                 </CardHeader>
@@ -129,7 +136,7 @@ export default function Dashboard() {
               {projects.map((project) => (
                 <Card
                   key={project.id}
-                  className="border-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover-elevate cursor-pointer transition-transform"
+                  className="border shadow-sm hover:shadow-md cursor-pointer transition-all rounded-2xl"
                   data-testid={`card-project-${project.id}`}
                 >
                   <CardHeader>

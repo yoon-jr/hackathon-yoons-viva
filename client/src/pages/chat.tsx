@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import logoImage from "@assets/image_1762502653328.png";
 
 interface StrategyCard {
   category: string;
@@ -135,7 +136,12 @@ export default function Chat() {
             돌아가기
           </Button>
           <div className="text-center">
-            <h1 className="text-xl font-sans font-bold text-primary">ViVa</h1>
+            <img 
+              src={logoImage} 
+              alt="ViVa" 
+              className="h-10 mx-auto mb-1"
+              data-testid="logo-image"
+            />
             {project && (
               <p className="text-sm text-muted-foreground">{project.productName}</p>
             )}
@@ -178,11 +184,11 @@ export default function Chat() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {strategyCards.map((card, index) => (
                     <Card
                       key={index}
-                      className="hover-elevate active-elevate-2 cursor-pointer transition-all"
+                      className="hover:shadow-md cursor-pointer transition-all border shadow-sm rounded-2xl"
                       onClick={() => !isLoading && handleCardClick(card)}
                       data-testid={`card-strategy-${card.category}`}
                     >
