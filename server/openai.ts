@@ -48,19 +48,43 @@ export async function generateMarketingResponse(
 
 친근하고 열정적으로 대화하되 전문적인 인사이트를 제공하세요. 구체적인 사례와 실행 가능한 아이디어를 제시하세요.`;
 
+  console.log("[OpenAI] Starting generateMarketingResponse");
+  console.log("[OpenAI] Environment:", {
+    hasBaseURL: !!process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+    hasAPIKey: !!process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  });
+  
   return await pRetry(
     async () => {
       try {
+        console.log("[OpenAI] Calling chat.completions.create...");
         const response = await openai.chat.completions.create({
           model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
           messages: [
             { role: "system", content: systemPrompt },
             ...messages,
           ],
-          max_completion_tokens: 2048,
+          max_completion_tokens: 8192,
         });
-        return response.choices[0]?.message?.content || "죄송합니다. 응답을 생성할 수 없습니다.";
+        console.log("[OpenAI] Response received:", {
+          hasChoices: !!response.choices,
+          choicesLength: response.choices?.length,
+          hasContent: !!response.choices?.[0]?.message?.content,
+        });
+        const content = response.choices[0]?.message?.content;
+        if (!content) {
+          console.error("[OpenAI] No content in response:", response);
+          return "죄송합니다. 응답을 생성할 수 없습니다.";
+        }
+        return content;
       } catch (error: any) {
+        console.error("[OpenAI] Error in chat completion:", {
+          message: error?.message,
+          status: error?.status,
+          type: error?.type,
+          stack: error?.stack,
+        });
         if (isRateLimitError(error)) {
           throw error;
         }
@@ -197,7 +221,7 @@ export async function generateMarketingImage(
           prompt: prompt,
           size: "1024x1024",
         });
-        const base64 = response.data[0]?.b64_json ?? "";
+        const base64 = response.data?.[0]?.b64_json ?? "";
         return Buffer.from(base64, "base64");
       } catch (error: any) {
         if (isRateLimitError(error)) {

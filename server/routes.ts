@@ -107,16 +107,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: m.content,
       }));
 
+      console.log("[Chat] Generating AI response for project:", projectId);
+      console.log("[Chat] Environment check:", {
+        hasBaseURL: !!process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+        hasAPIKey: !!process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+      });
+
       // Generate AI response
-      const aiResponse = await generateMarketingResponse(
-        conversationHistory,
-        {
-          productName: project.productName,
-          targetAge: project.targetAge,
-          marketingSeason: project.marketingSeason,
-          currentStatus: project.currentStatus,
-        }
-      );
+      let aiResponse: string;
+      try {
+        aiResponse = await generateMarketingResponse(
+          conversationHistory,
+          {
+            productName: project.productName,
+            targetAge: project.targetAge,
+            marketingSeason: project.marketingSeason,
+            currentStatus: project.currentStatus,
+          }
+        );
+        console.log("[Chat] AI response generated successfully");
+      } catch (aiError) {
+        console.error("[Chat] AI generation failed:", aiError);
+        console.error("[Chat] Error details:", {
+          message: aiError instanceof Error ? aiError.message : String(aiError),
+          stack: aiError instanceof Error ? aiError.stack : undefined,
+        });
+        throw aiError;
+      }
 
       // Save AI message
       await storage.createMessage({
