@@ -55,8 +55,11 @@ export default function Home() {
             AI 기반 리브랜딩 마케팅 플랫폼
           </p>
           <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
-            추억의 과자에 새로운 생명을! GPT와 DALL-E가 당신의 제품을 위한
-            맞춤형 마케팅 전략과 비주얼을 생성합니다.
+            추억의 과자에 새로운 생명을!
+          </p>
+          <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
+            GPT와 DALL-E가 당신의 제품을 위한 맞춤형 마케팅 전략과 비주얼을
+            생성합니다.
           </p>
           <Button
             size="lg"
