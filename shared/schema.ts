@@ -7,7 +7,7 @@ import { z } from "zod";
 export const projects = pgTable("projects", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   productName: text("product_name").notNull(),
-  targetAge: text("target_age").notNull(), // "10대", "20대", "30대"
+  targetAge: text("target_age").notNull(), // "알파세대", "Z세대", "밀레니얼세대", "X세대"
   marketingSeason: text("marketing_season").notNull(), // "수능시즌", "여름", "연말"
   currentStatus: text("current_status").notNull(), // "성공", "실패", "비바이럴"
   conversationStage: text("conversation_stage").notNull().default("greeting"), // "greeting", "diagnosis", "candidates", "detailed"
@@ -85,7 +85,7 @@ export type ProductSales = typeof productSales.$inferSelect;
 export type InsertProductSales = z.infer<typeof insertProductSalesSchema>;
 
 // Frontend-specific types
-export type AgeGroup = "10대" | "20대" | "30대";
+export type AgeGroup = "알파세대" | "Z세대" | "밀레니얼세대" | "X세대";
 export type MarketingSeason = "수능시즌" | "여름" | "연말" | "명절" | "기타";
 export type ProductStatus = "성공" | "실패" | "비바이럴";
 export type StrategyType = "콜라보" | "네이밍" | "캠페인" | "시즌마케팅" | "시즌" | "굿즈";

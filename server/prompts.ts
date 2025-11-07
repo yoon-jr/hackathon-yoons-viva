@@ -39,7 +39,7 @@ export function generateDiagnosisPrompt(
 
 # 분석 대상 제품
 - 제품명: ${context.productName}
-- 타겟 연령: ${context.targetAge}
+- 타겟 세대: ${context.targetAge}
 - 마케팅 시즌: ${context.marketingSeason}
 - 현재 상태: ${context.currentStatus}
 
@@ -65,7 +65,7 @@ ${trendingList}
 #### 2. 문제점 진단
 - **매출 하락 원인 (해당시)**: 시기와 원인 분석
 - **경쟁 제품과의 차별점 부족**: 상위권 제품 대비 어떤 점이 부족한가
-- **타겟층 불일치**: 현재 ${context.targetAge} 타겟팅의 적절성
+- **타겟층 불일치**: 현재 ${context.targetAge} 세대 타겟팅의 적절성
 
 #### 3. 기회 요소
 - 활용 가능한 시장 트렌드
@@ -169,7 +169,7 @@ export function generateDetailedStrategyPrompt(
   "title": "${strategyTitle}",
   "description": "이 전략의 핵심을 2-3문장으로 요약",
   "details": "### 실행 단계\\n\\n1. **1단계**: 구체적 액션\\n2. **2단계**: 구체적 액션\\n3. **3단계**: 구체적 액션\\n\\n### 예상 결과\\n\\n- 바이럴 확산 경로\\n- SNS 반응 예상\\n- 브랜드 이미지 개선",
-  "hashtags": "#${context.productName} #역바이럴 #뉴트로 #관련해시태그1 #관련해시태그2"
+  "hashtags": "#${context.productName} #ViVa #뉴트로 #관련해시태그1 #관련해시태그2"
 }
 \`\`\`
 
@@ -205,7 +205,7 @@ export function generateStrategyCardsPrompt(
 
 # 분석 대상 제품
 - 제품명: ${context.productName}
-- 타겟 연령: ${context.targetAge}
+- 타겟 세대: ${context.targetAge}
 - 마케팅 시즌: ${context.marketingSeason}
 - 현재 상태: ${context.currentStatus}
 
@@ -214,7 +214,7 @@ ${topProductsList}
 ${diagnosisSection}
 
 # 요청사항
-"${context.productName}"의 역바이럴 마케팅을 위한 **4가지 핵심 전략 카드**를 생성하세요.
+"${context.productName}"의 리브랜딩 마케팅을 위한 **4가지 핵심 전략 카드**를 생성하세요.
 각 카드는 카테고리별로 가장 임팩트 있는 아이디어를 **간단명료하게** 제시해야 합니다.
 ${marketDiagnosis ? "**위의 실시간 시장 조사 결과를 적극 반영하여** 최신 트렌드에 맞는 전략을 제안하세요." : ""}
 
@@ -260,7 +260,7 @@ ${marketDiagnosis ? "**위의 실시간 시장 조사 결과를 적극 반영하
 2. title은 10자 이내로 간결하게
 3. summary는 핵심만 2문장 이내
 4. viralPoint는 SNS 확산 포인트 1문장
-5. ${context.targetAge} 타겟에 최적화된 아이디어`;
+5. ${context.targetAge} 세대 타겟에 최적화된 아이디어`;
 }
 
 // 일반 대화 프롬프트
@@ -272,7 +272,7 @@ export function generateConversationPrompt(
 
 # 컨설팅 대상
 - 제품명: ${context.productName}
-- 타겟 연령: ${context.targetAge}
+- 타겟 세대: ${context.targetAge}
 - 시즌: ${context.marketingSeason}
 - 현재 상태: ${context.currentStatus}
 

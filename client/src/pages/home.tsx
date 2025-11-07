@@ -11,8 +11,8 @@ export default function Home() {
       {/* Header */}
       <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-accent font-bold text-primary" data-testid="text-logo">
-            역바이럴
+          <h1 className="text-2xl font-sans font-bold text-primary" data-testid="text-logo">
+            ViVa
           </h1>
           <div className="flex gap-3">
             <Button 
@@ -44,7 +44,7 @@ export default function Home() {
             <span className="text-primary">바이럴시켜보세요</span>
           </h2>
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 font-sans" data-testid="text-hero-subtitle">
-            AI 기반 역바이럴 마케팅 플랫폼
+            AI 기반 리브랜딩 마케팅 플랫폼
           </p>
           <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
             추억의 과자에 새로운 생명을! GPT와 DALL-E가 당신의 제품을 위한 맞춤형 마케팅 전략과 비주얼을 생성합니다.
@@ -74,7 +74,7 @@ export default function Home() {
               </div>
               <h4 className="text-xl font-bold mb-3">제품 정보 입력</h4>
               <p className="text-muted-foreground">
-                바이럴시키고 싶은 과자와 타겟 연령층, 홍보 시기를 선택하세요.
+                바이럴시키고 싶은 과자와 타겟 세대, 홍보 시기를 선택하세요.
               </p>
             </Card>
 
@@ -110,9 +110,9 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="p-8 border-3" data-testid="card-feature-ai">
               <TrendingUp className="h-12 w-12 text-primary mb-4" />
-              <h4 className="text-xl font-bold mb-3">연령별 맞춤 전략</h4>
+              <h4 className="text-xl font-bold mb-3">세대별 맞춤 전략</h4>
               <p className="text-muted-foreground">
-                10대(갓성비/콜라보), 20대(트렌디/해외감성), 30대(프리미엄) 등 타겟에 맞는 전략을 자동 생성합니다.
+                알파세대(디지털 네이티브), Z세대(트렌디/밈), 밀레니얼세대(감성/경험), X세대(신뢰/품질) 등 타겟에 맞는 전략을 자동 생성합니다.
               </p>
             </Card>
 
@@ -146,7 +146,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-border py-8 px-4 mt-24">
         <div className="container mx-auto text-center text-sm text-muted-foreground">
-          <p>© 2025 역바이럴. AI 기반 리브랜딩 마케팅 플랫폼</p>
+          <p>© 2025 ViVa. AI 기반 리브랜딩 마케팅 플랫폼</p>
         </div>
       </footer>
     </div>

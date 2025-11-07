@@ -53,13 +53,15 @@ function generateMarketQueries(productContext: {
     "과자 콜라보 마케팅 성공 사례",
   ];
 
-  // Add age-specific queries
-  if (productContext.targetAge === "10대") {
-    baseQueries.push("10대 과자 유행 트렌드", "중고등학생 과자 선호도");
-  } else if (productContext.targetAge === "20대") {
-    baseQueries.push("20대 과자 소비 패턴", "대학생 간식 트렌드");
-  } else if (productContext.targetAge === "30대") {
-    baseQueries.push("30대 프리미엄 과자 시장", "어른을 위한 과자 트렌드");
+  // Add generation-specific queries
+  if (productContext.targetAge === "알파세대") {
+    baseQueries.push("알파세대 과자 유행 트렌드", "초등학생 과자 선호도", "키즈 과자 마케팅");
+  } else if (productContext.targetAge === "Z세대") {
+    baseQueries.push("Z세대 과자 소비 패턴", "10대 20대 과자 트렌드", "밈 마케팅 과자");
+  } else if (productContext.targetAge === "밀레니얼세대") {
+    baseQueries.push("밀레니얼 과자 소비 특징", "30대 감성 과자 시장", "프리미엄 스낵 트렌드");
+  } else if (productContext.targetAge === "X세대") {
+    baseQueries.push("X세대 과자 선호도", "40-50대 과자 시장", "추억의 과자 리뉴얼");
   }
 
   // Add season-specific queries
@@ -136,7 +138,7 @@ export async function performMarketDiagnosis(productContext: {
     return {
       queries: [],
       results: [],
-      summary: `${productContext.productName}의 역바이럴 마케팅 전략을 준비합니다.`,
+      summary: `${productContext.productName}의 리브랜딩 마케팅 전략을 준비합니다.`,
     };
   }
 

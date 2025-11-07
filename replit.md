@@ -1,8 +1,8 @@
-# 역바이럴 (Reverse Viral) 마케팅 플랫폼
+# ViVa (Viral Value) 마케팅 플랫폼
 
 ## Overview
 
-역바이럴 is an AI-powered marketing platform designed to help revitalize discontinued or underperforming Korean snack products through modern viral marketing strategies. The platform leverages OpenAI's GPT for conversational marketing strategy generation and DALL-E for creating visual marketing materials. Users complete a survey about their product, engage in AI-guided chat conversations to refine strategies, and receive comprehensive marketing plans with visual assets.
+ViVa is an AI-powered marketing platform designed to help revitalize discontinued or underperforming Korean snack products through modern viral marketing strategies. The platform leverages OpenAI's GPT for conversational marketing strategy generation and DALL-E for creating visual marketing materials. Users complete a survey about their product, engage in AI-guided chat conversations to refine strategies, and receive comprehensive marketing plans with visual assets.
 
 The application targets Korean B2B clients (snack manufacturers, marketing agencies) seeking to rebrand nostalgic products for modern audiences by combining retro aesthetics ("뉴트로" - newtro) with contemporary viral marketing tactics.
 
@@ -80,7 +80,7 @@ Preferred communication style: Simple, everyday language.
 ### Database Schema (Drizzle ORM)
 
 **Projects Table**:
-- Stores product metadata: name, target age group (10대/20대/30대), marketing season, current status
+- Stores product metadata: name, target generation (알파세대/Z세대/밀레니얼세대/X세대), marketing season, current status
 - **conversationStage field**: tracks progress (greeting, diagnosis, candidates, detailed)
 - UUID primary keys with auto-generation
 - Created timestamp tracking

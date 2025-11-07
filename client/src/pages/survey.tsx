@@ -29,7 +29,7 @@ export default function Survey() {
     resolver: zodResolver(insertProjectSchema),
     defaultValues: {
       productName: "",
-      targetAge: "20대",
+      targetAge: "Z세대",
       marketingSeason: "기타",
       currentStatus: "비바이럴",
     },
@@ -65,7 +65,7 @@ export default function Survey() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             돌아가기
           </Button>
-          <h1 className="text-2xl font-accent font-bold text-primary">역바이럴</h1>
+          <h1 className="text-2xl font-sans font-bold text-primary">ViVa</h1>
           <div className="w-24"></div>
         </div>
       </header>
@@ -145,18 +145,18 @@ export default function Survey() {
                     name="targetAge"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-lg font-bold">타겟 연령층</FormLabel>
-                        <div className="grid grid-cols-3 gap-4">
-                          {(["10대", "20대", "30대"] as const).map((age) => (
+                        <FormLabel className="text-lg font-bold">타겟 세대</FormLabel>
+                        <div className="grid grid-cols-2 gap-4">
+                          {(["알파세대", "Z세대", "밀레니얼세대", "X세대"] as const).map((generation) => (
                             <Button
-                              key={age}
+                              key={generation}
                               type="button"
-                              variant={field.value === age ? "default" : "outline"}
+                              variant={field.value === generation ? "default" : "outline"}
                               className="py-6 font-accent text-lg border-2"
-                              onClick={() => field.onChange(age)}
-                              data-testid={`button-age-${age}`}
+                              onClick={() => field.onChange(generation)}
+                              data-testid={`button-age-${generation}`}
                             >
-                              {age}
+                              {generation}
                             </Button>
                           ))}
                         </div>

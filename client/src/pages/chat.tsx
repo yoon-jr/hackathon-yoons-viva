@@ -135,7 +135,7 @@ export default function Chat() {
             돌아가기
           </Button>
           <div className="text-center">
-            <h1 className="text-xl font-accent font-bold text-primary">역바이럴</h1>
+            <h1 className="text-xl font-sans font-bold text-primary">ViVa</h1>
             {project && (
               <p className="text-sm text-muted-foreground">{project.productName}</p>
             )}
@@ -171,7 +171,7 @@ export default function Chat() {
 
                 <div className="text-center mb-8">
                   <h2 className="text-2xl font-bold font-accent mb-2">
-                    {project?.productName}의 역바이럴 전략
+                    {project?.productName}의 리브랜딩 전략
                   </h2>
                   <p className="text-muted-foreground">
                     카테고리별 핵심 전략을 확인하고 선택하세요

@@ -81,7 +81,7 @@ export default function Results() {
             돌아가기
           </Button>
           <div className="text-center">
-            <h1 className="text-xl font-accent font-bold text-primary">역바이럴</h1>
+            <h1 className="text-xl font-sans font-bold text-primary">ViVa</h1>
             {project && (
               <p className="text-sm text-muted-foreground">{project.productName}</p>
             )}
