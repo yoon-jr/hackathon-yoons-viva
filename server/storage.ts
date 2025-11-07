@@ -5,12 +5,15 @@ import {
   type InsertMessage,
   type Strategy,
   type InsertStrategy,
+  type ProductSales,
+  type InsertProductSales,
   projects,
   messages,
   strategies,
+  productSales,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc } from "drizzle-orm";
+import { eq, desc, asc, like } from "drizzle-orm";
 
 export interface IStorage {
   // Projects
@@ -25,6 +28,13 @@ export interface IStorage {
   getStrategies(projectId: string): Promise<Strategy[]>;
   createStrategy(strategy: InsertStrategy): Promise<Strategy>;
   createStrategies(strategies: InsertStrategy[]): Promise<Strategy[]>;
+  
+  // Product Sales
+  getProductSales(category?: string): Promise<ProductSales[]>;
+  getTopProducts(limit: number): Promise<ProductSales[]>;
+  getTrendingProducts(): Promise<ProductSales[]>;
+  createProductSales(sales: InsertProductSales): Promise<ProductSales>;
+  bulkCreateProductSales(salesList: InsertProductSales[]): Promise<ProductSales[]>;
 }
 
 export class PostgresStorage implements IStorage {
@@ -69,6 +79,53 @@ export class PostgresStorage implements IStorage {
 
   async createStrategies(insertStrategies: InsertStrategy[]): Promise<Strategy[]> {
     const result = await db.insert(strategies).values(insertStrategies).returning();
+    return result;
+  }
+
+  // Product Sales
+  async getProductSales(category?: string): Promise<ProductSales[]> {
+    if (category) {
+      return await db
+        .select()
+        .from(productSales)
+        .where(eq(productSales.category, category))
+        .orderBy(desc(productSales.recordedAt));
+    }
+    return await db
+      .select()
+      .from(productSales)
+      .orderBy(desc(productSales.recordedAt))
+      .limit(50);
+  }
+
+  async getTopProducts(limit: number): Promise<ProductSales[]> {
+    const allProducts = await db.select().from(productSales);
+    
+    return allProducts
+      .sort((a, b) => {
+        const rankA = parseInt(a.rank?.replace('위', '') || '999');
+        const rankB = parseInt(b.rank?.replace('위', '') || '999');
+        return rankA - rankB;
+      })
+      .slice(0, limit);
+  }
+
+  async getTrendingProducts(): Promise<ProductSales[]> {
+    return await db
+      .select()
+      .from(productSales)
+      .where(eq(productSales.trendScore, "상승"))
+      .orderBy(desc(productSales.recordedAt))
+      .limit(20);
+  }
+
+  async createProductSales(insertSales: InsertProductSales): Promise<ProductSales> {
+    const result = await db.insert(productSales).values(insertSales).returning();
+    return result[0];
+  }
+
+  async bulkCreateProductSales(salesList: InsertProductSales[]): Promise<ProductSales[]> {
+    const result = await db.insert(productSales).values(salesList).returning();
     return result;
   }
 }

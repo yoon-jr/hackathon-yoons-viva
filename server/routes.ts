@@ -123,6 +123,190 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Product Sales API - Get sales data
+  app.get("/api/sales", async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      const salesData = await storage.getProductSales(category);
+      res.json(salesData);
+    } catch (error) {
+      console.error("Error fetching sales data:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+
+  // Get top products by rank
+  app.get("/api/sales/top", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const topProducts = await storage.getTopProducts(limit);
+      res.json(topProducts);
+    } catch (error) {
+      console.error("Error fetching top products:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+
+  // Get trending products (상승 트렌드)
+  app.get("/api/sales/trending", async (req, res) => {
+    try {
+      const trending = await storage.getTrendingProducts();
+      res.json(trending);
+    } catch (error) {
+      console.error("Error fetching trending products:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+
+  // Seed sample sales data
+  app.post("/api/sales/seed", async (req, res) => {
+    try {
+      const sampleData = [
+        {
+          productName: "초코파이정",
+          category: "초코",
+          brand: "오리온",
+          monthlySales: "15.2만개",
+          trendScore: "상승",
+          storeChain: "CU",
+          rank: "1위",
+        },
+        {
+          productName: "새우깡",
+          category: "스낵",
+          brand: "농심",
+          monthlySales: "12.8만개",
+          trendScore: "유지",
+          storeChain: "GS25",
+          rank: "2위",
+        },
+        {
+          productName: "마이구미",
+          category: "젤리",
+          brand: "롯데",
+          monthlySales: "10.5만개",
+          trendScore: "상승",
+          storeChain: "세븐일레븐",
+          rank: "3위",
+        },
+        {
+          productName: "빼빼로",
+          category: "초코",
+          brand: "롯데",
+          monthlySales: "9.8만개",
+          trendScore: "하락",
+          storeChain: "CU",
+          rank: "4위",
+        },
+        {
+          productName: "포카칩",
+          category: "스낵",
+          brand: "오리온",
+          monthlySales: "9.2만개",
+          trendScore: "유지",
+          storeChain: "이마트24",
+          rank: "5위",
+        },
+        {
+          productName: "꼬북칩",
+          category: "스낵",
+          brand: "오리온",
+          monthlySales: "8.7만개",
+          trendScore: "상승",
+          storeChain: "GS25",
+          rank: "6위",
+        },
+        {
+          productName: "콘칩",
+          category: "스낵",
+          brand: "크라운",
+          monthlySales: "7.5만개",
+          trendScore: "유지",
+          storeChain: "CU",
+          rank: "7위",
+        },
+        {
+          productName: "허니버터칩",
+          category: "스낵",
+          brand: "해태",
+          monthlySales: "6.9만개",
+          trendScore: "하락",
+          storeChain: "세븐일레븐",
+          rank: "8위",
+        },
+        {
+          productName: "바나나킥",
+          category: "과자",
+          brand: "농심",
+          monthlySales: "6.3만개",
+          trendScore: "상승",
+          storeChain: "GS25",
+          rank: "9위",
+        },
+        {
+          productName: "칸쵸",
+          category: "초코",
+          brand: "롯데",
+          monthlySales: "5.8만개",
+          trendScore: "유지",
+          storeChain: "이마트24",
+          rank: "10위",
+        },
+        {
+          productName: "오예스",
+          category: "과자",
+          brand: "해태",
+          monthlySales: "5.5만개",
+          trendScore: "상승",
+          storeChain: "CU",
+          rank: "11위",
+        },
+        {
+          productName: "스윙칩",
+          category: "스낵",
+          brand: "농심",
+          monthlySales: "5.2만개",
+          trendScore: "유지",
+          storeChain: "GS25",
+          rank: "12위",
+        },
+        {
+          productName: "홈런볼",
+          category: "초코",
+          brand: "해태",
+          monthlySales: "4.8만개",
+          trendScore: "하락",
+          storeChain: "세븐일레븐",
+          rank: "13위",
+        },
+        {
+          productName: "ABC초콜릿",
+          category: "초코",
+          brand: "롯데",
+          monthlySales: "4.5만개",
+          trendScore: "상승",
+          storeChain: "CU",
+          rank: "14위",
+        },
+        {
+          productName: "고래밥",
+          category: "스낵",
+          brand: "농심",
+          monthlySales: "4.2만개",
+          trendScore: "유지",
+          storeChain: "이마트24",
+          rank: "15위",
+        },
+      ];
+
+      const seeded = await storage.bulkCreateProductSales(sampleData);
+      res.json({ message: "Sample data seeded successfully", count: seeded.length });
+    } catch (error) {
+      console.error("Error seeding sales data:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+
   // Generate marketing strategies with images
   app.post("/api/strategies/generate/:projectId", async (req, res) => {
     try {

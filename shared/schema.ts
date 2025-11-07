@@ -61,8 +61,30 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Strategy = typeof strategies.$inferSelect;
 export type InsertStrategy = z.infer<typeof insertStrategySchema>;
 
+// Food sales data for market insights
+export const productSales = pgTable("product_sales", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productName: text("product_name").notNull(),
+  category: text("category").notNull(), // "초코", "사탕", "스낵", "젤리", "과자"
+  brand: text("brand"),
+  monthlySales: text("monthly_sales").notNull(), // Sales volume as string (e.g., "1.2만개")
+  trendScore: text("trend_score").notNull(), // "상승", "하락", "유지"
+  storeChain: text("store_chain"), // "CU", "GS25", "세븐일레븐", "이마트24"
+  rank: text("rank"), // Popularity rank (e.g., "1위", "2위")
+  recordedAt: timestamp("recorded_at").defaultNow(),
+});
+
+export const insertProductSalesSchema = createInsertSchema(productSales).omit({
+  id: true,
+  recordedAt: true,
+});
+
+export type ProductSales = typeof productSales.$inferSelect;
+export type InsertProductSales = z.infer<typeof insertProductSalesSchema>;
+
 // Frontend-specific types
 export type AgeGroup = "10대" | "20대" | "30대";
 export type MarketingSeason = "수능시즌" | "여름" | "연말" | "명절" | "기타";
 export type ProductStatus = "성공" | "실패" | "비바이럴";
 export type StrategyType = "콜라보" | "네이밍" | "캠페인" | "시즌마케팅";
+export type TrendScore = "상승" | "하락" | "유지";
