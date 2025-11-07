@@ -44,7 +44,7 @@ export default function Dashboard() {
         </div>
 
         <div className="text-center space-y-4">
-          <h1 className="text-5xl font-black font-accent text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-400 dark:to-red-400" data-testid="text-dashboard-title">
+          <h1 className="text-5xl font-black font-sans text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-400 dark:to-red-400" data-testid="text-dashboard-title">
             대시보드
           </h1>
           <p className="text-lg text-muted-foreground">
@@ -94,7 +94,7 @@ export default function Dashboard() {
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-3xl font-bold font-accent">인기 과자 TOP 5</h2>
+          <h2 className="text-3xl font-bold font-sans">인기 과자 TOP 5</h2>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {topProducts.slice(0, 5).map((product, index) => (
               <Card key={product.id} className="border-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]" data-testid={`card-top-product-${index}`}>
@@ -112,7 +112,7 @@ export default function Dashboard() {
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-3xl font-bold font-accent">프로젝트 히스토리</h2>
+          <h2 className="text-3xl font-bold font-sans">프로젝트 히스토리</h2>
           {projectsLoading ? (
             <div className="text-center py-12">
               <div className="text-muted-foreground">로딩 중...</div>
@@ -133,7 +133,7 @@ export default function Dashboard() {
                   data-testid={`card-project-${project.id}`}
                 >
                   <CardHeader>
-                    <CardTitle className="font-accent text-xl">{project.productName}</CardTitle>
+                    <CardTitle className="font-sans text-xl">{project.productName}</CardTitle>
                     <CardDescription>
                       {project.createdAt && formatDistanceToNow(new Date(project.createdAt), {
                         addSuffix: true,

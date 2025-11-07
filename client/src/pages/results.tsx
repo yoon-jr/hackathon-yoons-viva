@@ -93,7 +93,7 @@ export default function Results() {
       {/* Results */}
       <div className="container mx-auto px-4 py-12 max-w-6xl">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-accent font-bold mb-4" data-testid="text-results-title">
+          <h2 className="text-4xl font-sans font-bold mb-4" data-testid="text-results-title">
             마케팅 전략 결과
           </h2>
           <p className="text-lg text-muted-foreground">
@@ -150,7 +150,7 @@ export default function Results() {
                   <CardContent>
                     <Button
                       variant="outline"
-                      className="w-full font-accent"
+                      className="w-full font-sans"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedStrategy(strategy);
@@ -173,7 +173,7 @@ export default function Results() {
           {selectedStrategy && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-2xl font-accent">{selectedStrategy.title}</DialogTitle>
+                <DialogTitle className="text-2xl font-sans">{selectedStrategy.title}</DialogTitle>
               </DialogHeader>
               
               <div className="my-4">
@@ -206,7 +206,7 @@ export default function Results() {
 
                 <div>
                   <h4 className="font-bold text-lg mb-2">추천 해시태그</h4>
-                  <p className="text-primary font-accent">{selectedStrategy.hashtags}</p>
+                  <p className="text-primary font-sans">{selectedStrategy.hashtags}</p>
                 </div>
 
                 <div className="flex gap-3 pt-4">

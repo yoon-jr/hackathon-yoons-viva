@@ -19,6 +19,7 @@ import { insertProjectSchema, type InsertProject, type Project } from "@shared/s
 import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import logoImage from "@assets/image_1762502653328.png";
 
 export default function Survey() {
   const [, setLocation] = useLocation();
@@ -65,7 +66,12 @@ export default function Survey() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             돌아가기
           </Button>
-          <h1 className="text-2xl font-sans font-bold text-primary">ViVa</h1>
+          <img 
+            src={logoImage} 
+            alt="ViVa" 
+            className="h-10"
+            data-testid="logo-image"
+          />
           <div className="w-24"></div>
         </div>
       </header>
@@ -73,7 +79,7 @@ export default function Survey() {
       {/* Survey Form */}
       <div className="container mx-auto px-4 py-12 max-w-3xl">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-accent font-bold mb-4" data-testid="text-survey-title">
+          <h2 className="text-4xl font-sans font-bold mb-4" data-testid="text-survey-title">
             새 프로젝트 시작하기
           </h2>
           <p className="text-lg text-muted-foreground">
@@ -83,20 +89,20 @@ export default function Survey() {
 
         {/* Progress Indicator */}
         <div className="flex items-center justify-center gap-3 mb-12" data-testid="progress-indicator">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-accent font-bold transition-all ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-sans font-semibold text-sm transition-all ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
             1
           </div>
-          <div className={`h-1 w-16 transition-all ${step >= 2 ? 'bg-primary' : 'bg-muted'}`}></div>
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-accent font-bold transition-all ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+          <div className={`h-0.5 w-12 transition-all rounded-full ${step >= 2 ? 'bg-primary' : 'bg-border'}`}></div>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-sans font-semibold text-sm transition-all ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
             2
           </div>
-          <div className={`h-1 w-16 transition-all ${step >= 3 ? 'bg-primary' : 'bg-muted'}`}></div>
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-accent font-bold transition-all ${step >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+          <div className={`h-0.5 w-12 transition-all rounded-full ${step >= 3 ? 'bg-primary' : 'bg-border'}`}></div>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-sans font-semibold text-sm transition-all ${step >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
             3
           </div>
         </div>
 
-        <Card className="p-8 border-3">
+        <Card className="p-8 border shadow-sm rounded-2xl">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               {/* Step 1: Product Name */}
@@ -111,7 +117,7 @@ export default function Survey() {
                         <FormControl>
                           <Input
                             placeholder="예: 바밤바, 쫀드기, 꼬깔콘..."
-                            className="border-2 text-lg py-6"
+                            className="border text-lg py-6 rounded-xl focus:ring-2 focus:ring-primary/20"
                             data-testid="input-product-name"
                             {...field}
                           />
@@ -129,7 +135,7 @@ export default function Survey() {
                         form.setError("productName", { message: "과자 이름을 입력해주세요" });
                       }
                     }}
-                    className="w-full py-6 text-lg font-accent"
+                    className="w-full py-6 text-lg font-sans"
                     data-testid="button-next-step-1"
                   >
                     다음
@@ -152,7 +158,7 @@ export default function Survey() {
                               key={generation}
                               type="button"
                               variant={field.value === generation ? "default" : "outline"}
-                              className="py-6 font-accent text-lg border-2"
+                              className="py-6 font-sans text-lg border rounded-xl hover:bg-primary/5"
                               onClick={() => field.onChange(generation)}
                               data-testid={`button-age-${generation}`}
                             >
@@ -173,7 +179,7 @@ export default function Survey() {
                         <FormLabel className="text-lg font-bold">홍보 시기</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="border-2 text-lg py-6" data-testid="select-season">
+                            <SelectTrigger className="border text-lg py-6 rounded-xl" data-testid="select-season">
                               <SelectValue placeholder="시기를 선택하세요" />
                             </SelectTrigger>
                           </FormControl>
@@ -195,7 +201,7 @@ export default function Survey() {
                       type="button"
                       variant="outline"
                       onClick={() => setStep(1)}
-                      className="flex-1 py-6 text-lg font-accent border-2"
+                      className="flex-1 py-6 text-lg font-sans border rounded-xl hover:bg-muted"
                       data-testid="button-back-step-2"
                     >
                       이전
@@ -203,7 +209,7 @@ export default function Survey() {
                     <Button
                       type="button"
                       onClick={() => setStep(3)}
-                      className="flex-1 py-6 text-lg font-accent"
+                      className="flex-1 py-6 text-lg font-sans rounded-xl"
                       data-testid="button-next-step-2"
                     >
                       다음
@@ -227,7 +233,7 @@ export default function Survey() {
                               key={status}
                               type="button"
                               variant={field.value === status ? "default" : "outline"}
-                              className="py-6 font-accent text-lg border-2"
+                              className="py-6 font-sans text-lg border rounded-xl hover:bg-primary/5"
                               onClick={() => field.onChange(status)}
                               data-testid={`button-status-${status}`}
                             >
@@ -248,7 +254,7 @@ export default function Survey() {
                       type="button"
                       variant="outline"
                       onClick={() => setStep(2)}
-                      className="flex-1 py-6 text-lg font-accent border-2"
+                      className="flex-1 py-6 text-lg font-sans border rounded-xl hover:bg-muted"
                       data-testid="button-back-step-3"
                     >
                       이전
@@ -256,7 +262,7 @@ export default function Survey() {
                     <Button
                       type="submit"
                       disabled={createProjectMutation.isPending}
-                      className="flex-1 py-6 text-lg font-accent"
+                      className="flex-1 py-6 text-lg font-sans rounded-xl"
                       data-testid="button-submit"
                     >
                       {createProjectMutation.isPending ? (

@@ -170,7 +170,7 @@ export default function Chat() {
                 )}
 
                 <div className="text-center mb-8">
-                  <h2 className="text-2xl font-bold font-accent mb-2">
+                  <h2 className="text-2xl font-bold font-sans mb-2">
                     {project?.productName}의 리브랜딩 전략
                   </h2>
                   <p className="text-muted-foreground">
@@ -236,7 +236,7 @@ export default function Chat() {
           {selectedStrategy && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-2xl font-accent">
+                <DialogTitle className="text-2xl font-sans">
                   {selectedStrategy.title}
                 </DialogTitle>
                 <p className="text-sm text-muted-foreground pt-2">
