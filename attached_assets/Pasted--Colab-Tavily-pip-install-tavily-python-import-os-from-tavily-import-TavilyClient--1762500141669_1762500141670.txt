@@ -1,0 +1,71 @@
+# Colab에서 Tavily 라이브러리 설치
+!pip install tavily-python
+
+import os
+from tavily import TavilyClient
+import time # API 연속 호출 시 잠시 대기하기 위함
+
+# 🚨 중요: 여기에 사용자님의 'Tavily API 키'를 입력하세요.
+os.environ["TAVILY_API_KEY"] = "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"
+
+try:
+    client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
+
+    # 2010-2025 트렌드 변화를 위한 풍부한 쿼리 리스트
+    queries = [
+        "2010년 편의점 과자 유행",
+        "2015년 과자 시장 트렌드",
+        "2020년 편의점 인기 과자",
+        "2010년대 과자 시장 변화 분석",
+        "2020년대 과자 소비 트렌드",
+        "편의점 과자 역주행 마케팅 성공 사례",
+        "허니버터칩 마케팅 분석",
+        "포켓몬빵 재유행 원인",
+        "먹태깡 바이럴 마케팅",
+        "과자 콜라보 마케팅 트렌드 2023 2024",
+        "MZ세대 과자 소비 특징",
+        "저당 제로 슈거 과자 시장 동향",
+        "뉴트로(Newtro) 스낵 마케팅 사례",
+        "편의점 PB 과자 성공 전략",
+        "2010년부터 2025년까지 한국 과자 트렌드 변화"
+    ]
+
+    all_results = []
+
+    print(f"총 {len(queries)}개의 쿼리로 검색을 시작합니다...\n")
+
+    for query in queries:
+        print(f"--- [검색 중] \"{query}\" ---")
+        try:
+            response = client.search(
+                query=query,
+                search_depth="advanced",
+                max_results=3 # 각 쿼리당 결과 수를 3개로 제한 (API 사용량 관리)
+            )
+            
+            print(f"'{query}'에 대한 결과 {len(response.get('results', []))}개 수신\n")
+            
+            if 'results' in response:
+                all_results.extend(response['results'])
+            
+            time.sleep(1) # API 과호출을 방지하기 위해 1초 대기
+
+        except Exception as e:
+            print(f"'{query}' 검색 중 오류 발생: {e}\n")
+
+    print("\n" + "="*30)
+    print("✨ 모든 검색 완료! 수집된 결과 요약:")
+    print(f"총 {len(all_results)}개의 검색 결과를 수집했습니다.")
+    print("="*30 + "\n")
+
+    # 수집된 전체 결과 중 일부만 확인 (너무 길어질 수 있으므로)
+    for i, result in enumerate(all_results[:10]): # 최대 10개 결과만 우선 출력
+        print(f"결과 {i+1}: {result['title']}")
+        print(f"URL: {result['url']}")
+        print(f"요약: {result['content']}\n")
+        print("-" * 20)
+
+except Exception as e:
+    print(f"Tavily API 키가 설정되지 않았거나 유효하지 않습니다.")
+    print("Tavily 웹사이트에서 API 키를 발급받아 'YOUR_OWN_TAVILY_API_KEY' 부분에 입력해주세요.")
+    print(f"에러 상세: {e}")

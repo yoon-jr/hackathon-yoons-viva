@@ -180,26 +180,73 @@ export function generateDetailedStrategyPrompt(
 4. 해시태그는 5-7개 정도 제시`;
 }
 
-// 초기 인사 프롬프트
-export function generateGreetingPrompt(context: ProductContext): string {
-  return `당신은 한국 과자 마케팅 전문 AI 컨설턴트입니다.
+// 초기 전략 카드 생성 프롬프트 (인사 메시지 대체)
+export function generateStrategyCardsPrompt(
+  context: ProductContext,
+  salesContext: SalesContext
+): string {
+  const topProductsList = salesContext.topProducts
+    .map((p) => `${p.rank} ${p.productName} (${p.category}): ${p.monthlySales}`)
+    .join("\n");
 
-사용자가 "${context.productName}" 제품의 역바이럴 마케팅을 시작했습니다.
+  return `당신은 한국 과자 시장 전문 마케팅 컨설턴트입니다.
 
-**제품 정보**:
+# 분석 대상 제품
 - 제품명: ${context.productName}
 - 타겟 연령: ${context.targetAge}
-- 시즌: ${context.marketingSeason}
+- 마케팅 시즌: ${context.marketingSeason}
 - 현재 상태: ${context.currentStatus}
 
-친근하고 전문적인 톤으로 환영 인사를 하세요. 
-앞으로 진행될 프로세스를 간단히 안내하세요:
+# 시장 TOP 제품
+${topProductsList}
 
-1. 제품 분석 및 문제점 진단
-2. 4가지 카테고리별 마케팅 후보 제시
-3. 선택한 전략의 상세 실행 방안 및 이미지 생성
+# 요청사항
+"${context.productName}"의 역바이럴 마케팅을 위한 **4가지 핵심 전략 카드**를 생성하세요.
+각 카드는 카테고리별로 가장 임팩트 있는 아이디어를 **간단명료하게** 제시해야 합니다.
 
-2-3문장으로 간결하게 작성하세요.`;
+## 출력 형식 (JSON)
+
+반드시 다음 JSON 배열 형식으로 응답하세요:
+
+\`\`\`json
+[
+  {
+    "category": "시즌마케팅",
+    "icon": "🎯",
+    "title": "[짧고 임팩트 있는 전략명]",
+    "summary": "[1-2문장으로 핵심 아이디어 요약]",
+    "viralPoint": "[바이럴 포인트 1문장]"
+  },
+  {
+    "category": "콜라보",
+    "icon": "🤝",
+    "title": "[짧고 임팩트 있는 전략명]",
+    "summary": "[1-2문장으로 핵심 아이디어 요약]",
+    "viralPoint": "[바이럴 포인트 1문장]"
+  },
+  {
+    "category": "네이밍",
+    "icon": "✨",
+    "title": "[짧고 임팩트 있는 전략명]",
+    "summary": "[1-2문장으로 핵심 아이디어 요약]",
+    "viralPoint": "[바이럴 포인트 1문장]"
+  },
+  {
+    "category": "굿즈",
+    "icon": "🎁",
+    "title": "[짧고 임팩트 있는 전략명]",
+    "summary": "[1-2문장으로 핵심 아이디어 요약]",
+    "viralPoint": "[바이럴 포인트 1문장]"
+  }
+]
+\`\`\`
+
+**중요 사항**:
+1. 각 전략은 명확히 구분되어야 합니다
+2. title은 10자 이내로 간결하게
+3. summary는 핵심만 2문장 이내
+4. viralPoint는 SNS 확산 포인트 1문장
+5. ${context.targetAge} 타겟에 최적화된 아이디어`;
 }
 
 // 일반 대화 프롬프트

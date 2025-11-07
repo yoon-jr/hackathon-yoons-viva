@@ -9,7 +9,8 @@ import {
   generateGreeting,
   generateDiagnosis,
   generateCandidates,
-  generateDetailedStrategy
+  generateDetailedStrategy,
+  generateStrategyCards
 } from "./openai";
 import { z } from "zod";
 
@@ -20,29 +21,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = insertProjectSchema.parse(req.body);
       const project = await storage.createProject(data);
       
-      // Create initial AI greeting using new prompt system
+      // Generate strategy cards immediately (no greeting message)
       try {
-        const greeting = await generateGreeting({
+        console.log("[Projects] Generating strategy cards immediately...");
+        
+        // Get sales data
+        const topProducts = await storage.getTopProducts(10);
+        const trendingProducts = topProducts.slice(0, 5).map(p => ({
+          ...p,
+          trendScore: "상승세",
+        }));
+        
+        const salesContext = {
+          topProducts: topProducts.map(p => ({
+            productName: p.productName,
+            rank: p.rank || "",
+            monthlySales: p.monthlySales,
+            category: p.category,
+          })),
+          trendingProducts,
+        };
+        
+        const strategyCards = await generateStrategyCards({
           productName: project.productName,
           targetAge: project.targetAge,
           marketingSeason: project.marketingSeason,
           currentStatus: project.currentStatus,
+        }, salesContext);
+        
+        // Save strategy cards as a message with metadata
+        await storage.createMessage({
+          projectId: project.id,
+          role: "assistant",
+          content: "다음 4가지 카테고리의 핵심 전략을 준비했습니다. 원하시는 전략을 선택해주세요.",
+          metadata: JSON.stringify({ 
+            stage: "strategy_cards",
+            cards: strategyCards 
+          }),
         });
         
-        await storage.createMessage({
-          projectId: project.id,
-          role: "assistant",
-          content: greeting,
-          metadata: JSON.stringify({ stage: "greeting" }),
-        });
+        console.log("[Projects] Strategy cards generated successfully");
       } catch (aiError) {
-        console.error("AI greeting generation failed:", aiError);
-        // Fallback greeting
+        console.error("AI strategy card generation failed:", aiError);
+        // Fallback message
         await storage.createMessage({
           projectId: project.id,
           role: "assistant",
-          content: `안녕하세요! ${project.productName}의 역바이럴 마케팅을 함께 시작하겠습니다.\n\n먼저 제품과 시장을 분석한 후, 맞춤 전략을 제안해드리겠습니다.\n\n**"분석 시작"**이라고 말씀해주시면 시작하겠습니다!`,
-          metadata: JSON.stringify({ stage: "greeting" }),
+          content: `${project.productName}의 역바이럴 마케팅 전략을 준비하고 있습니다. 잠시만 기다려주세요.`,
+          metadata: JSON.stringify({ stage: "error" }),
         });
       }
       
@@ -700,6 +726,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching strategies:", error);
       res.status(500).json({ error: "Server error" });
+    }
+  });
+
+  // Generate detailed strategy for selected card
+  app.post("/api/strategies/detail/:projectId", async (req, res) => {
+    try {
+      const projectId = req.params.projectId;
+      const { category, title } = z.object({
+        category: z.string(),
+        title: z.string(),
+      }).parse(req.body);
+      
+      console.log(`[DetailStrategy] Generating detail for ${category}: ${title}`);
+      
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+
+      // Map category to strategy type
+      const categoryMap: Record<string, "시즌" | "콜라보" | "네이밍" | "굿즈"> = {
+        "시즌마케팅": "시즌",
+        "콜라보": "콜라보",
+        "네이밍": "네이밍",
+        "굿즈": "굿즈",
+      };
+      
+      const strategyType = categoryMap[category];
+      if (!strategyType) {
+        return res.status(400).json({ error: "Invalid category" });
+      }
+
+      // Generate detailed strategy
+      const detailedStrategy = await generateDetailedStrategy(
+        {
+          productName: project.productName,
+          targetAge: project.targetAge,
+          marketingSeason: project.marketingSeason,
+          currentStatus: project.currentStatus,
+        },
+        strategyType,
+        title
+      );
+
+      // Save as message with strategy details
+      await storage.createMessage({
+        projectId,
+        role: "assistant",
+        content: `**${title}** 전략의 상세 실행 방안입니다.`,
+        metadata: JSON.stringify({
+          stage: "detailed_strategy",
+          strategy: detailedStrategy,
+        }),
+      });
+
+      console.log(`[DetailStrategy] Generated successfully`);
+      res.json({ strategy: detailedStrategy });
+    } catch (error) {
+      console.error("[DetailStrategy] Error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Server error" 
+      });
     }
   });
 

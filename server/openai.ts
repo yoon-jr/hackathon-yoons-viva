@@ -234,25 +234,74 @@ export async function generateMarketingImages(
 
 // NEW: Structured conversation flow functions using prompt engineering
 
+export async function generateStrategyCards(
+  context: {
+    productName: string;
+    targetAge: string;
+    marketingSeason: string;
+    currentStatus: string;
+  },
+  salesContext: {
+    topProducts: Array<{
+      productName: string;
+      rank: string;
+      monthlySales: string;
+      category: string;
+    }>;
+    trendingProducts: Array<{
+      productName: string;
+      trendScore: string;
+      category: string;
+      monthlySales: string;
+    }>;
+  }
+): Promise<Array<{
+  category: string;
+  icon: string;
+  title: string;
+  summary: string;
+  viralPoint: string;
+}>> {
+  const userPrompt = prompts.generateStrategyCardsPrompt(context, salesContext);
+  
+  console.log("[StrategyCards] Generating initial strategy cards...");
+  return await pRetry(
+    async () => {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [{ role: "user", content: userPrompt }],
+        max_completion_tokens: 2048,
+      });
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error("No strategy cards content received");
+      }
+      
+      // Extract JSON from markdown code block if present
+      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+      const jsonString = jsonMatch ? jsonMatch[1] : content;
+      
+      try {
+        const parsed = JSON.parse(jsonString);
+        console.log("[StrategyCards] Cards generated successfully");
+        return parsed;
+      } catch (e) {
+        console.error("[StrategyCards] Failed to parse JSON:", e);
+        throw new Error("Failed to parse strategy cards JSON");
+      }
+    },
+    { retries: 3, minTimeout: 2000, maxTimeout: 10000 }
+  );
+}
+
 export async function generateGreeting(context: {
   productName: string;
   targetAge: string;
   marketingSeason: string;
   currentStatus: string;
 }): Promise<string> {
-  const userPrompt = prompts.generateGreetingPrompt(context);
-  
-  return await pRetry(
-    async () => {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4.1",
-        messages: [{ role: "user", content: userPrompt }],
-        max_completion_tokens: 500,
-      });
-      return response.choices[0]?.message?.content || "안녕하세요! 마케팅 전략을 함께 만들어보겠습니다.";
-    },
-    { retries: 2, minTimeout: 1000, maxTimeout: 5000 }
-  );
+  // Deprecated - will be removed
+  return `안녕하세요! ${context.productName}의 역바이럴 마케팅을 시작합니다.`;
 }
 
 export async function generateDiagnosis(
