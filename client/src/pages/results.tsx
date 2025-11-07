@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ArrowLeft, Download, Share2, Star, Type, Megaphone, Calendar, Loader2 } from "lucide-react";
 import { type Strategy, type Project } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import logoImage from "@assets/image_1762502653328.png";
+import logoImage from "@assets/logoImg.png";
 
 const strategyIcons = {
   "콜라보": Star,

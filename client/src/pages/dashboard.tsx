@@ -1,20 +1,36 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, TrendingUp, TrendingDown, Minus, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Sparkles,
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import type { Project, ProductSales } from "@shared/schema";
-import logoImage from "@assets/image_1762502653328.png";
+import logoImage from "@assets/logoImg.png";
 
 export default function Dashboard() {
-  const { data: projects = [], isLoading: projectsLoading } = useQuery<Project[]>({
+  const { data: projects = [], isLoading: projectsLoading } = useQuery<
+    Project[]
+  >({
     queryKey: ["/api/projects"],
   });
 
-  const { data: salesData = [], isLoading: salesLoading } = useQuery<ProductSales[]>({
+  const { data: salesData = [], isLoading: salesLoading } = useQuery<
+    ProductSales[]
+  >({
     queryKey: ["/api/sales"],
   });
 
@@ -22,36 +38,44 @@ export default function Dashboard() {
     queryKey: ["/api/sales/top"],
   });
 
-  const trendingCount = salesData.filter(s => s.trendScore === "상승").length;
-  const decliningCount = salesData.filter(s => s.trendScore === "하락").length;
-  const stableCount = salesData.filter(s => s.trendScore === "유지").length;
+  const trendingCount = salesData.filter((s) => s.trendScore === "상승").length;
+  const decliningCount = salesData.filter(
+    (s) => s.trendScore === "하락",
+  ).length;
+  const stableCount = salesData.filter((s) => s.trendScore === "유지").length;
 
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
           <Link href="/">
-            <Button variant="ghost" className="gap-2" data-testid="button-back-home">
+            <Button
+              variant="ghost"
+              className="gap-2"
+              data-testid="button-back-home"
+            >
               <ArrowLeft className="w-4 h-4" />
               홈으로
             </Button>
           </Link>
-          <img 
-            src={logoImage} 
-            alt="ViVa" 
+          <img
+            src={logoImage}
+            alt="ViVa"
             className="h-10"
             data-testid="logo-image"
           />
           <Link href="/survey">
             <Button className="gap-2" data-testid="button-new-project">
-              <Sparkles className="w-4 h-4" />
-              새 프로젝트
+              <Sparkles className="w-4 h-4" />새 프로젝트
             </Button>
           </Link>
         </div>
 
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold font-sans" data-testid="text-dashboard-title">
+          <h1
+            className="text-4xl font-bold font-sans"
+            data-testid="text-dashboard-title"
+          >
             대시보드
           </h1>
           <p className="text-lg text-muted-foreground">
@@ -104,14 +128,22 @@ export default function Dashboard() {
           <h2 className="text-3xl font-bold font-sans">인기 과자 TOP 5</h2>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {topProducts.slice(0, 5).map((product, index) => (
-              <Card key={product.id} className="border shadow-sm rounded-2xl" data-testid={`card-top-product-${index}`}>
+              <Card
+                key={product.id}
+                className="border shadow-sm rounded-2xl"
+                data-testid={`card-top-product-${index}`}
+              >
                 <CardHeader className="pb-2">
-                  <div className="text-3xl font-black text-center text-orange-600">{product.rank}</div>
+                  <div className="text-3xl font-black text-center text-orange-600">
+                    {product.rank}
+                  </div>
                 </CardHeader>
                 <CardContent className="text-center space-y-2">
                   <div className="font-bold text-lg">{product.productName}</div>
                   <Badge variant="secondary">{product.category}</Badge>
-                  <div className="text-sm text-muted-foreground">{product.monthlySales}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {product.monthlySales}
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -126,9 +158,13 @@ export default function Dashboard() {
             </div>
           ) : projects.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">아직 프로젝트가 없습니다.</p>
+              <p className="text-muted-foreground mb-4">
+                아직 프로젝트가 없습니다.
+              </p>
               <Link href="/survey">
-                <Button data-testid="button-create-first-project">첫 프로젝트 만들기</Button>
+                <Button data-testid="button-create-first-project">
+                  첫 프로젝트 만들기
+                </Button>
               </Link>
             </div>
           ) : (
@@ -140,25 +176,30 @@ export default function Dashboard() {
                   data-testid={`card-project-${project.id}`}
                 >
                   <CardHeader>
-                    <CardTitle className="font-sans text-xl">{project.productName}</CardTitle>
+                    <CardTitle className="font-sans text-xl">
+                      {project.productName}
+                    </CardTitle>
                     <CardDescription>
-                      {project.createdAt && formatDistanceToNow(new Date(project.createdAt), {
-                        addSuffix: true,
-                        locale: ko,
-                      })}
+                      {project.createdAt &&
+                        formatDistanceToNow(new Date(project.createdAt), {
+                          addSuffix: true,
+                          locale: ko,
+                        })}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex gap-2 flex-wrap">
                       <Badge variant="secondary">{project.targetAge}</Badge>
-                      <Badge variant="secondary">{project.marketingSeason}</Badge>
+                      <Badge variant="secondary">
+                        {project.marketingSeason}
+                      </Badge>
                       <Badge
                         variant={
                           project.currentStatus === "성공"
                             ? "default"
                             : project.currentStatus === "실패"
-                            ? "destructive"
-                            : "outline"
+                              ? "destructive"
+                              : "outline"
                         }
                       >
                         {project.currentStatus}
@@ -166,12 +207,22 @@ export default function Dashboard() {
                     </div>
                     <div className="flex gap-2">
                       <Link href={`/chat/${project.id}`}>
-                        <Button variant="outline" size="sm" className="flex-1" data-testid={`button-view-chat-${project.id}`}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          data-testid={`button-view-chat-${project.id}`}
+                        >
                           대화 보기
                         </Button>
                       </Link>
                       <Link href={`/results/${project.id}`}>
-                        <Button variant="default" size="sm" className="flex-1" data-testid={`button-view-results-${project.id}`}>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="flex-1"
+                          data-testid={`button-view-results-${project.id}`}
+                        >
                           전략 보기
                         </Button>
                       </Link>

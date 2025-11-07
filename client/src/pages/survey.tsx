@@ -14,12 +14,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { insertProjectSchema, type InsertProject, type Project } from "@shared/schema";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  insertProjectSchema,
+  type InsertProject,
+  type Project,
+} from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import logoImage from "@assets/image_1762502653328.png";
+import logoImage from "@assets/logoImg.png";
 
 export default function Survey() {
   const [, setLocation] = useLocation();
@@ -62,13 +73,17 @@ export default function Survey() {
       {/* Header */}
       <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Button variant="ghost" onClick={() => setLocation("/")} data-testid="button-back">
+          <Button
+            variant="ghost"
+            onClick={() => setLocation("/")}
+            data-testid="button-back"
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
             돌아가기
           </Button>
-          <img 
-            src={logoImage} 
-            alt="ViVa" 
+          <img
+            src={logoImage}
+            alt="ViVa"
             className="h-10"
             data-testid="logo-image"
           />
@@ -79,7 +94,10 @@ export default function Survey() {
       {/* Survey Form */}
       <div className="container mx-auto px-4 py-12 max-w-3xl">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-sans font-bold mb-4" data-testid="text-survey-title">
+          <h2
+            className="text-4xl font-sans font-bold mb-4"
+            data-testid="text-survey-title"
+          >
             새 프로젝트 시작하기
           </h2>
           <p className="text-lg text-muted-foreground">
@@ -88,16 +106,29 @@ export default function Survey() {
         </div>
 
         {/* Progress Indicator */}
-        <div className="flex items-center justify-center gap-3 mb-12" data-testid="progress-indicator">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-sans font-semibold text-sm transition-all ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+        <div
+          className="flex items-center justify-center gap-3 mb-12"
+          data-testid="progress-indicator"
+        >
+          <div
+            className={`w-8 h-8 rounded-full flex items-center justify-center font-sans font-semibold text-sm transition-all ${step >= 1 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+          >
             1
           </div>
-          <div className={`h-0.5 w-12 transition-all rounded-full ${step >= 2 ? 'bg-primary' : 'bg-border'}`}></div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-sans font-semibold text-sm transition-all ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+          <div
+            className={`h-0.5 w-12 transition-all rounded-full ${step >= 2 ? "bg-primary" : "bg-border"}`}
+          ></div>
+          <div
+            className={`w-8 h-8 rounded-full flex items-center justify-center font-sans font-semibold text-sm transition-all ${step >= 2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+          >
             2
           </div>
-          <div className={`h-0.5 w-12 transition-all rounded-full ${step >= 3 ? 'bg-primary' : 'bg-border'}`}></div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-sans font-semibold text-sm transition-all ${step >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+          <div
+            className={`h-0.5 w-12 transition-all rounded-full ${step >= 3 ? "bg-primary" : "bg-border"}`}
+          ></div>
+          <div
+            className={`w-8 h-8 rounded-full flex items-center justify-center font-sans font-semibold text-sm transition-all ${step >= 3 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+          >
             3
           </div>
         </div>
@@ -113,7 +144,9 @@ export default function Survey() {
                     name="productName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-lg font-bold">어떤 과자를 리브랜딩하고 싶으신가요?</FormLabel>
+                        <FormLabel className="text-lg font-bold">
+                          어떤 과자를 리브랜딩하고 싶으신가요?
+                        </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="예: 바밤바, 쫀드기, 꼬깔콘..."
@@ -132,7 +165,9 @@ export default function Survey() {
                       if (form.getValues("productName")) {
                         setStep(2);
                       } else {
-                        form.setError("productName", { message: "과자 이름을 입력해주세요" });
+                        form.setError("productName", {
+                          message: "과자 이름을 입력해주세요",
+                        });
                       }
                     }}
                     className="w-full py-6 text-lg font-sans"
@@ -151,13 +186,26 @@ export default function Survey() {
                     name="targetAge"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-lg font-bold">타겟 세대</FormLabel>
+                        <FormLabel className="text-lg font-bold">
+                          타겟 세대
+                        </FormLabel>
                         <div className="grid grid-cols-2 gap-4">
-                          {(["알파세대", "Z세대", "밀레니얼세대", "X세대"] as const).map((generation) => (
+                          {(
+                            [
+                              "알파세대",
+                              "Z세대",
+                              "밀레니얼세대",
+                              "X세대",
+                            ] as const
+                          ).map((generation) => (
                             <Button
                               key={generation}
                               type="button"
-                              variant={field.value === generation ? "default" : "outline"}
+                              variant={
+                                field.value === generation
+                                  ? "default"
+                                  : "outline"
+                              }
                               className="py-6 font-sans text-lg border rounded-xl hover:bg-primary/5"
                               onClick={() => field.onChange(generation)}
                               data-testid={`button-age-${generation}`}
@@ -176,15 +224,25 @@ export default function Survey() {
                     name="marketingSeason"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-lg font-bold">홍보 시기</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormLabel className="text-lg font-bold">
+                          홍보 시기
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
-                            <SelectTrigger className="border text-lg py-6 rounded-xl" data-testid="select-season">
+                            <SelectTrigger
+                              className="border text-lg py-6 rounded-xl"
+                              data-testid="select-season"
+                            >
                               <SelectValue placeholder="시기를 선택하세요" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="수능시즌">수능시즌 (11월)</SelectItem>
+                            <SelectItem value="수능시즌">
+                              수능시즌 (11월)
+                            </SelectItem>
                             <SelectItem value="여름">여름 (7~8월)</SelectItem>
                             <SelectItem value="연말">연말 (12~1월)</SelectItem>
                             <SelectItem value="명절">명절 (설/추석)</SelectItem>
@@ -226,23 +284,30 @@ export default function Survey() {
                     name="currentStatus"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-lg font-bold">현재 상태</FormLabel>
+                        <FormLabel className="text-lg font-bold">
+                          현재 상태
+                        </FormLabel>
                         <div className="grid grid-cols-3 gap-4">
-                          {(["성공", "실패", "비바이럴"] as const).map((status) => (
-                            <Button
-                              key={status}
-                              type="button"
-                              variant={field.value === status ? "default" : "outline"}
-                              className="py-6 font-sans text-lg border rounded-xl hover:bg-primary/5"
-                              onClick={() => field.onChange(status)}
-                              data-testid={`button-status-${status}`}
-                            >
-                              {status}
-                            </Button>
-                          ))}
+                          {(["성공", "실패", "비바이럴"] as const).map(
+                            (status) => (
+                              <Button
+                                key={status}
+                                type="button"
+                                variant={
+                                  field.value === status ? "default" : "outline"
+                                }
+                                className="py-6 font-sans text-lg border rounded-xl hover:bg-primary/5"
+                                onClick={() => field.onChange(status)}
+                                data-testid={`button-status-${status}`}
+                              >
+                                {status}
+                              </Button>
+                            ),
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground mt-2">
-                          성공: 이미 바이럴 중 | 실패: 시도했으나 실패 | 비바이럴: 홍보 부족
+                          성공: 이미 바이럴 중 | 실패: 시도했으나 실패 |
+                          비바이럴: 홍보 부족
                         </p>
                         <FormMessage />
                       </FormItem>

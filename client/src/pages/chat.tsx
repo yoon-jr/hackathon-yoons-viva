@@ -2,7 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -10,8 +16,13 @@ import { type Message, type Project } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import logoImage from "@assets/image_1762502653328.png";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import logoImage from "@assets/logoImg.png";
 
 interface StrategyCard {
   category: string;
@@ -35,7 +46,8 @@ export default function Chat() {
   const { toast } = useToast();
   const projectId = params?.id || "";
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [selectedStrategy, setSelectedStrategy] = useState<DetailedStrategy | null>(null);
+  const [selectedStrategy, setSelectedStrategy] =
+    useState<DetailedStrategy | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Fetch project details
@@ -45,14 +57,16 @@ export default function Chat() {
   });
 
   // Fetch messages
-  const { data: messages = [], isLoading: isLoadingMessages } = useQuery<Message[]>({
+  const { data: messages = [], isLoading: isLoadingMessages } = useQuery<
+    Message[]
+  >({
     queryKey: ["/api/messages", projectId],
     enabled: !!projectId,
   });
 
   // Parse strategy cards from messages (optimized)
   const strategyCards: StrategyCard[] = (() => {
-    const cardsMessage = messages.find(m => {
+    const cardsMessage = messages.find((m) => {
       try {
         const metadata = m.metadata ? JSON.parse(m.metadata) : {};
         return metadata.stage === "strategy_cards";
@@ -74,7 +88,7 @@ export default function Chat() {
   })();
 
   // Find diagnosis message
-  const diagnosisMessage = messages.find(m => {
+  const diagnosisMessage = messages.find((m) => {
     try {
       const metadata = m.metadata ? JSON.parse(m.metadata) : {};
       return metadata.stage === "diagnosis";
@@ -85,11 +99,17 @@ export default function Chat() {
 
   // Generate detailed strategy when card is clicked
   const generateDetailMutation = useMutation({
-    mutationFn: async ({ category, title }: { category: string; title: string }) => {
+    mutationFn: async ({
+      category,
+      title,
+    }: {
+      category: string;
+      title: string;
+    }) => {
       return await apiRequest<{ strategy: DetailedStrategy }>(
         "POST",
         `/api/strategies/detail/${projectId}`,
-        { category, title }
+        { category, title },
       );
     },
     onSuccess: (data) => {
@@ -131,19 +151,25 @@ export default function Chat() {
       {/* Header */}
       <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Button variant="ghost" onClick={() => setLocation("/")} data-testid="button-back">
+          <Button
+            variant="ghost"
+            onClick={() => setLocation("/")}
+            data-testid="button-back"
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
             돌아가기
           </Button>
           <div className="text-center">
-            <img 
-              src={logoImage} 
-              alt="ViVa" 
+            <img
+              src={logoImage}
+              alt="ViVa"
               className="h-10 mx-auto mb-1"
               data-testid="logo-image"
             />
             {project && (
-              <p className="text-sm text-muted-foreground">{project.productName}</p>
+              <p className="text-sm text-muted-foreground">
+                {project.productName}
+              </p>
             )}
           </div>
           <div className="w-24" />
@@ -196,7 +222,9 @@ export default function Chat() {
                         <div className="flex items-center gap-3 mb-2">
                           <span className="text-3xl">{card.icon}</span>
                           <div className="flex-1">
-                            <CardTitle className="text-lg">{card.title}</CardTitle>
+                            <CardTitle className="text-lg">
+                              {card.title}
+                            </CardTitle>
                             <p className="text-xs text-muted-foreground mt-1">
                               {card.category}
                             </p>
@@ -209,7 +237,10 @@ export default function Chat() {
                         </p>
                         <div className="pt-2 border-t border-border">
                           <p className="text-xs text-muted-foreground">
-                            <span className="font-semibold">바이럴 포인트:</span> {card.viralPoint}
+                            <span className="font-semibold">
+                              바이럴 포인트:
+                            </span>{" "}
+                            {card.viralPoint}
                           </p>
                         </div>
                       </CardContent>
@@ -229,7 +260,9 @@ export default function Chat() {
             ) : (
               <div className="flex flex-col items-center justify-center py-12">
                 <Sparkles className="h-12 w-12 text-primary mb-4" />
-                <p className="text-muted-foreground">전략을 생성하고 있습니다...</p>
+                <p className="text-muted-foreground">
+                  전략을 생성하고 있습니다...
+                </p>
               </div>
             )}
           </div>
@@ -249,17 +282,18 @@ export default function Chat() {
                   {selectedStrategy.description}
                 </p>
               </DialogHeader>
-              
+
               <div className="space-y-4 mt-4">
                 <div className="prose prose-sm max-w-none dark:prose-invert">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {selectedStrategy.details}
                   </ReactMarkdown>
                 </div>
-                
+
                 <div className="pt-4 border-t border-border">
                   <p className="text-sm text-muted-foreground">
-                    <span className="font-semibold">추천 해시태그:</span> {selectedStrategy.hashtags}
+                    <span className="font-semibold">추천 해시태그:</span>{" "}
+                    {selectedStrategy.hashtags}
                   </p>
                 </div>
               </div>
