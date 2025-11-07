@@ -47,9 +47,10 @@ Preferred communication style: Simple, everyday language.
 - `POST /api/projects` - Create new marketing project
 - `GET /api/projects/:id` - Fetch project details
 - `GET /api/messages/:id` - Retrieve chat history
-- `POST /api/chat/:id` - Send message and get AI response
+- `POST /api/chat/:id` - Send message and get AI response (supports stage-based flow)
 - `GET /api/strategies/:id` - Fetch generated strategies
-- `POST /api/strategies/:id/generate` - Generate new strategies with AI
+- `GET /api/sales` - Fetch product sales data
+- `GET /api/sales/top` - Get top-ranked products
 
 **Data Storage Strategy**: 
 - In-memory storage implementation (`MemStorage` class) for development
@@ -60,10 +61,18 @@ Preferred communication style: Simple, everyday language.
 **AI Integration Architecture**:
 - OpenAI API accessed through Replit's AI Integrations service
 - GPT-4 for conversational marketing strategy generation
-- DALL-E for marketing visual generation
-- Custom system prompts tailored to Korean marketing context
+- DALL-E 3 for marketing visual generation (URL-based, not b64_json)
+- **Prompt Engineering System** (server/prompts.ts):
+  - Stage-based prompts: greeting, diagnosis, candidates, detailed strategy
+  - Markdown-formatted responses for readability
+  - JSON parsing for structured data (detailed strategies)
+  - No generic KPIs/budgets per user requirements
 - Retry logic with exponential backoff for rate limiting
 - Concurrency limiting (5 concurrent requests) for image generation
+- **Conversation Flow Management**:
+  - 4 stages tracked in database: greeting → diagnosis → candidates → detailed
+  - Intent detection from user messages (keywords: 분석, 후보, 선택)
+  - Automatic stage transitions with logging
 
 **Error Handling**: Custom middleware for request logging, JSON parsing with raw body capture, structured error responses
 
@@ -71,6 +80,7 @@ Preferred communication style: Simple, everyday language.
 
 **Projects Table**:
 - Stores product metadata: name, target age group (10대/20대/30대), marketing season, current status
+- **conversationStage field**: tracks progress (greeting, diagnosis, candidates, detailed)
 - UUID primary keys with auto-generation
 - Created timestamp tracking
 
@@ -78,6 +88,7 @@ Preferred communication style: Simple, everyday language.
 - Conversational history between user and AI assistant
 - Foreign key relationship to projects
 - Role-based storage (user/assistant)
+- **metadata field**: JSON storage for stage info, images, category selection
 
 **Strategies Table**:
 - AI-generated marketing strategies with categorization

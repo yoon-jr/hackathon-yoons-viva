@@ -120,10 +120,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Determine next action based on content or explicit action
       const userIntent = action || detectUserIntent(content);
 
-      try {
-        if (userIntent === "start_diagnosis") {
-          // Stage 1: Diagnosis
-          console.log("[Chat] Starting diagnosis...");
+      // Generate AI response based on stage
+      if (userIntent === "start_diagnosis") {
+        // Stage 1: Diagnosis
+        console.log("[Chat] Starting diagnosis...");
+        try {
           const topProducts = await storage.getTopProducts(10);
           const trendingProducts = await storage.getTrendingProducts();
           
@@ -154,10 +155,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           newStage = "diagnosis";
           responseMetadata = { stage: "diagnosis" };
-          
-        } else if (userIntent === "show_candidates") {
-          // Stage 2: Candidates
-          console.log("[Chat] Generating candidates...");
+        } catch (error) {
+          console.error("[Chat] Diagnosis generation failed:", error);
+          aiResponse = "죄송합니다. 진단 분석 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+          newStage = "greeting"; // Roll back to greeting
+          responseMetadata = { stage: "greeting", error: "diagnosis_failed" };
+        }
+        
+      } else if (userIntent === "show_candidates") {
+        // Stage 2: Candidates
+        console.log("[Chat] Generating candidates...");
+        try {
           const messages = await storage.getMessages(projectId);
           const conversationSummary = messages
             .slice(-5)
@@ -176,9 +184,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           newStage = "candidates";
           responseMetadata = { stage: "candidates" };
-          
+        } catch (error) {
+          console.error("[Chat] Candidates generation failed:", error);
+          aiResponse = "죄송합니다. 마케팅 후보를 생성하는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+          newStage = "diagnosis"; // Go back to diagnosis
+          responseMetadata = { stage: "diagnosis", error: "candidates_failed" };
+        }
+
+
+        
+      } else if (userIntent === "select_strategy") {
+        // Stage 3: Detailed Strategy + Images
+        console.log("[Chat] Generating detailed strategy with images...");
+        
+        const categorySelection = extractCategorySelection(content);
+        if (!categorySelection) {
+          aiResponse = "죄송합니다. 어떤 카테고리를 선택하실지 명확히 알려주세요.\n\n" +
+            "다음 중 하나를 선택해 주세요:\n" +
+            "- 시즌마케팅 (계절별 마케팅)\n" +
+            "- 콜라보 (협업 마케팅)\n" +
+            "- 네이밍 (제품명 리브랜딩)\n" +
+            "- 굿즈 (상품 기획)";
         } else {
-          // General conversation
+          console.log(`[Chat] Selected category: ${categorySelection.category}`);
+          
+          try {
+            const messages = await storage.getMessages(projectId);
+            const conversationSummary = messages
+              .slice(-10)
+              .map((m) => `${m.role}: ${m.content.substring(0, 300)}`)
+              .join("\n");
+            
+            // Generate detailed strategy with error handling
+            let strategyResult;
+            let strategyGenerationFailed = false;
+            
+            try {
+              strategyResult = await generateDetailedStrategy(
+                {
+                  productName: project.productName,
+                  targetAge: project.targetAge,
+                  marketingSeason: project.marketingSeason,
+                  currentStatus: project.currentStatus,
+                },
+                categorySelection.category,
+                conversationSummary
+              );
+              console.log("[Chat] Strategy generated successfully");
+            } catch (strategyError) {
+              console.error("[Chat] Strategy generation failed:", strategyError);
+              strategyGenerationFailed = true;
+              aiResponse = `죄송합니다. ${categorySelection.category} 전략을 생성하는 중 오류가 발생했습니다.\n\n` +
+                `다시 시도해 주시거나, 다른 카테고리를 선택해 주세요.`;
+              newStage = "candidates"; // Stay in candidates stage
+              responseMetadata = { stage: "candidates", error: "strategy_generation_failed" };
+              // Don't rethrow - continue to save message and respond
+            }
+            
+            // Only continue with images and saving if strategy was successful
+            if (!strategyGenerationFailed && strategyResult) {
+              // Generate marketing images with fallback
+              console.log("[Chat] Strategy generated, now generating images...");
+              let images: string[] = [];
+              try {
+                images = await generateMarketingImages(
+                  strategyResult.imagePrompts,
+                  {
+                    productName: project.productName,
+                    category: categorySelection.category,
+                  }
+                );
+                console.log(`[Chat] Generated ${images.length} images`);
+              } catch (imageError) {
+                console.error("[Chat] Image generation failed:", imageError);
+                console.log("[Chat] Continuing with strategy without images");
+                // Continue without images - not critical
+              }
+              
+              // Validate images array
+              const validImages = images.filter(url => url && url.length > 0);
+              const primaryImageUrl = validImages.length > 0 ? validImages[0] : null;
+              
+              if (validImages.length === 0) {
+                console.warn("[Chat] No valid images generated, saving strategy without images");
+              }
+              
+              // Save strategy to database
+              await storage.createStrategy({
+                projectId,
+                type: categorySelection.category as any,
+                title: strategyResult.title,
+                description: strategyResult.description,
+                imageUrl: primaryImageUrl,
+                implementation: JSON.stringify(strategyResult.implementation),
+                hashtags: strategyResult.hashtags,
+              });
+              
+              // Format response with images (if available)
+              aiResponse = `# ${strategyResult.title}\n\n${strategyResult.description}\n\n` +
+                `## 실행 방안\n${strategyResult.implementation.map((impl, idx) => `${idx + 1}. ${impl}`).join('\n')}\n\n` +
+                `## 해시태그\n${strategyResult.hashtags.map(tag => `#${tag}`).join(' ')}`;
+              
+              if (validImages.length > 0) {
+                aiResponse += `\n\n## 비주얼 콘셉트\n${validImages.map((url, idx) => `![이미지 ${idx + 1}](${url})`).join('\n')}`;
+              } else {
+                aiResponse += `\n\n## 비주얼 콘셉트\n이미지 생성 중 문제가 발생했습니다. 전략은 저장되었으니 나중에 다시 확인해 주세요.`;
+              }
+              
+              newStage = "detailed";
+              responseMetadata = { 
+                stage: "detailed",
+                category: categorySelection.category,
+                images: validImages,
+                hasImages: validImages.length > 0,
+              };
+            }
+          } catch (error) {
+            // Unexpected errors (e.g., database errors)
+            console.error("[Chat] Unexpected error in detailed strategy flow:", error);
+            aiResponse = "죄송합니다. 예상치 못한 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+            newStage = "candidates";
+            responseMetadata = { stage: "candidates", error: "unexpected_error" };
+          }
+        }
+        
+      } else {
+        // General conversation
+        console.log("[Chat] General conversation");
+        try {
           const messages = await storage.getMessages(projectId);
           const conversationHistory = messages
             .filter(m => m.role !== "system")
@@ -196,13 +329,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               currentStatus: project.currentStatus,
             }
           );
+        } catch (error) {
+          console.error("[Chat] General conversation failed:", error);
+          aiResponse = "죄송합니다. 응답을 생성하는 중 오류가 발생했습니다. 다시 시도해 주세요.";
+          responseMetadata = { ...responseMetadata, error: "conversation_failed" };
         }
-        
-        console.log(`[Chat] Response generated, new stage: ${newStage}`);
-      } catch (aiError) {
-        console.error("[Chat] AI generation failed:", aiError);
-        throw aiError;
       }
+      
+      console.log(`[Chat] Response generated, new stage: ${newStage}`);
 
       // Update project stage if changed
       if (newStage !== currentStage) {
@@ -238,11 +372,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return "start_diagnosis";
     }
     
-    if (lowerContent.includes("후보") || lowerContent.includes("전략") || lowerContent.includes("카테고리") || lowerContent.includes("아이디어")) {
+    if (lowerContent.includes("후보") || lowerContent.includes("전략 보여") || lowerContent.includes("카테고리 보여") || lowerContent.includes("아이디어 보여")) {
       return "show_candidates";
     }
     
+    // Detect category selection
+    if (lowerContent.includes("선택") || lowerContent.includes("결정") || lowerContent.includes("이걸로")) {
+      return "select_strategy";
+    }
+    
     return null;
+  }
+  
+  // Helper function to extract category info from user message
+  function extractCategorySelection(content: string): { category: string; title: string } | null {
+    const normalizedContent = content
+      .toLowerCase()
+      .replace(/\s+/g, '') // Remove whitespace
+      .replace(/[^\w가-힣]/g, ''); // Keep only Korean and alphanumeric
+    
+    // Detect category keywords with enhanced matching
+    let category = "";
+    if (normalizedContent.match(/(시즌|계절|봄|여름|가을|겨울)/)) {
+      category = "시즌마케팅";
+    } else if (normalizedContent.match(/(콜라보|협업|콜래버|collaboration)/)) {
+      category = "콜라보";
+    } else if (normalizedContent.match(/(네이밍|이름|네임|naming)/)) {
+      category = "네이밍";
+    } else if (normalizedContent.match(/(굿즈|상품|goods|제품|머천다이즈)/)) {
+      category = "굿즈";
+    }
+    
+    if (category) {
+      console.log(`[Chat] Extracted category: "${category}" from "${content}"`);
+    } else {
+      console.log(`[Chat] Failed to extract category from "${content}"`);
+    }
+    
+    // Extract title if available
+    const title = content.length > 20 ? content.substring(0, 50) : category;
+    
+    return category ? { category, title } : null;
   }
 
   // Product Sales API - Get sales data
