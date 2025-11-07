@@ -84,7 +84,11 @@ export async function generateMarketingStrategies(
     marketingSeason: string;
     currentStatus: string;
   },
-  conversationSummary: string
+  conversationSummary: string,
+  salesData?: {
+    topProducts: Array<{ productName: string; rank: string; monthlySales: string; category: string }>;
+    trendingProducts: Array<{ productName: string; trendScore: string; category: string; monthlySales: string }>;
+  }
 ): Promise<Array<{
   type: string;
   title: string;
@@ -92,6 +96,27 @@ export async function generateMarketingStrategies(
   details: string;
   hashtags: string;
 }>> {
+  
+  // Always include sales data context
+  let salesContext = "";
+  if (salesData) {
+    const topList = salesData.topProducts.length > 0
+      ? salesData.topProducts.slice(0, 5).map(p => `${p.rank} ${p.productName} (${p.category}, ${p.monthlySales})`).join(", ")
+      : "데이터 없음";
+    
+    const trendingList = salesData.trendingProducts.length > 0
+      ? salesData.trendingProducts.slice(0, 5).map(p => `${p.productName} (${p.category}, 판매량: ${p.monthlySales})`).join(", ")
+      : "데이터 없음";
+    
+    salesContext = `
+
+📊 국내 편의점 과자 판매 데이터 (최신):
+- 인기 TOP 5: ${topList}
+- 상승 트렌드: ${trendingList}
+
+이 데이터를 참고하여 시장 트렌드에 맞는 현실적인 전략을 제시하세요.`;
+  }
+
   const prompt = `${projectContext.productName}의 역바이럴 마케팅 전략을 4가지 타입으로 생성해주세요.
 
 제품 정보:
@@ -99,7 +124,7 @@ export async function generateMarketingStrategies(
 - 시기: ${projectContext.marketingSeason}
 - 현재 상태: ${projectContext.currentStatus}
 
-대화 요약: ${conversationSummary}
+대화 요약: ${conversationSummary}${salesContext}
 
 다음 4가지 타입의 전략을 JSON 객체로 반환하세요. "strategies" 키 아래에 배열을 넣어주세요:
 

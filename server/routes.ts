@@ -46,6 +46,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all projects
+  app.get("/api/projects", async (req, res) => {
+    try {
+      const projects = await storage.getAllProjects();
+      res.json(projects);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+
   // Get project by ID
   app.get("/api/projects/:id", async (req, res) => {
     try {
@@ -324,7 +335,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .map(m => `${m.role}: ${m.content}`)
         .join("\n");
 
-      // Generate strategies
+      // Fetch real-time sales data for context
+      const topProducts = await storage.getTopProducts(10);
+      const trendingProducts = await storage.getTrendingProducts();
+
+      // Generate strategies with sales data context
       const strategies = await generateMarketingStrategies(
         {
           productName: project.productName,
@@ -332,7 +347,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           marketingSeason: project.marketingSeason,
           currentStatus: project.currentStatus,
         },
-        conversationText
+        conversationText,
+        {
+          topProducts: topProducts.map(p => ({
+            productName: p.productName,
+            rank: p.rank || "",
+            monthlySales: p.monthlySales,
+            category: p.category,
+          })),
+          trendingProducts: trendingProducts.map(p => ({
+            productName: p.productName,
+            trendScore: p.trendScore,
+            category: p.category,
+            monthlySales: p.monthlySales,
+          })),
+        }
       );
 
       // Generate images for all strategies in parallel

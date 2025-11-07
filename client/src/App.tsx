@@ -7,6 +7,7 @@ import Home from "@/pages/home";
 import Survey from "@/pages/survey";
 import Chat from "@/pages/chat";
 import Results from "@/pages/results";
+import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/survey" component={Survey} />
       <Route path="/chat/:id" component={Chat} />
       <Route path="/results/:id" component={Results} />
+      <Route path="/dashboard" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>
   );

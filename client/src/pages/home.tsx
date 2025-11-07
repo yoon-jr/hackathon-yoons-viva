@@ -1,7 +1,7 @@
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Sparkles, TrendingUp, MessageSquare, Image } from "lucide-react";
+import { Sparkles, TrendingUp, MessageSquare, Image, BarChart3 } from "lucide-react";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -14,13 +14,24 @@ export default function Home() {
           <h1 className="text-2xl font-accent font-bold text-primary" data-testid="text-logo">
             역바이럴
           </h1>
-          <Button 
-            onClick={() => setLocation("/survey")}
-            className="font-accent"
-            data-testid="button-start-project"
-          >
-            새 프로젝트 시작
-          </Button>
+          <div className="flex gap-3">
+            <Button 
+              variant="outline"
+              onClick={() => setLocation("/dashboard")}
+              className="font-accent gap-2"
+              data-testid="button-dashboard"
+            >
+              <BarChart3 className="w-4 h-4" />
+              대시보드
+            </Button>
+            <Button 
+              onClick={() => setLocation("/survey")}
+              className="font-accent"
+              data-testid="button-start-project"
+            >
+              새 프로젝트 시작
+            </Button>
+          </div>
         </div>
       </header>
 

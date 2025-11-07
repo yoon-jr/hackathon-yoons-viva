@@ -18,6 +18,7 @@ import { eq, desc, asc, like } from "drizzle-orm";
 export interface IStorage {
   // Projects
   getProject(id: string): Promise<Project | undefined>;
+  getAllProjects(): Promise<Project[]>;
   createProject(project: InsertProject): Promise<Project>;
   
   // Messages
@@ -42,6 +43,10 @@ export class PostgresStorage implements IStorage {
   async getProject(id: string): Promise<Project | undefined> {
     const result = await db.select().from(projects).where(eq(projects.id, id));
     return result[0];
+  }
+
+  async getAllProjects(): Promise<Project[]> {
+    return await db.select().from(projects).orderBy(desc(projects.createdAt));
   }
 
   async createProject(insertProject: InsertProject): Promise<Project> {
