@@ -254,7 +254,8 @@ export async function generateStrategyCards(
       category: string;
       monthlySales: string;
     }>;
-  }
+  },
+  marketDiagnosis?: any | null
 ): Promise<Array<{
   category: string;
   icon: string;
@@ -262,7 +263,7 @@ export async function generateStrategyCards(
   summary: string;
   viralPoint: string;
 }>> {
-  const userPrompt = prompts.generateStrategyCardsPrompt(context, salesContext);
+  const userPrompt = prompts.generateStrategyCardsPrompt(context, salesContext, marketDiagnosis);
   
   console.log("[StrategyCards] Generating initial strategy cards...");
   return await pRetry(

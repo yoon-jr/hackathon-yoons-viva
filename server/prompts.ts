@@ -183,11 +183,23 @@ export function generateDetailedStrategyPrompt(
 // 초기 전략 카드 생성 프롬프트 (인사 메시지 대체)
 export function generateStrategyCardsPrompt(
   context: ProductContext,
-  salesContext: SalesContext
+  salesContext: SalesContext,
+  marketDiagnosis?: any | null
 ): string {
   const topProductsList = salesContext.topProducts
     .map((p) => `${p.rank} ${p.productName} (${p.category}): ${p.monthlySales}`)
     .join("\n");
+
+  // Add market diagnosis insights if available
+  let diagnosisSection = "";
+  if (marketDiagnosis && marketDiagnosis.results && marketDiagnosis.results.length > 0) {
+    const topInsights = marketDiagnosis.results
+      .slice(0, 8)
+      .map((r: any, idx: number) => `${idx + 1}. ${r.title}: ${r.content.substring(0, 150)}...`)
+      .join("\n");
+    
+    diagnosisSection = `\n# 실시간 시장 조사 결과 (Tavily)\n총 ${marketDiagnosis.results.length}개의 최신 시장 정보 수집:\n${topInsights}\n`;
+  }
 
   return `당신은 한국 과자 시장 전문 마케팅 컨설턴트입니다.
 
@@ -199,10 +211,12 @@ export function generateStrategyCardsPrompt(
 
 # 시장 TOP 제품
 ${topProductsList}
+${diagnosisSection}
 
 # 요청사항
 "${context.productName}"의 역바이럴 마케팅을 위한 **4가지 핵심 전략 카드**를 생성하세요.
 각 카드는 카테고리별로 가장 임팩트 있는 아이디어를 **간단명료하게** 제시해야 합니다.
+${marketDiagnosis ? "**위의 실시간 시장 조사 결과를 적극 반영하여** 최신 트렌드에 맞는 전략을 제안하세요." : ""}
 
 ## 출력 형식 (JSON)
 

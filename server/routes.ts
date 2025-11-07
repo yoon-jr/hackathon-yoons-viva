@@ -12,6 +12,7 @@ import {
   generateDetailedStrategy,
   generateStrategyCards
 } from "./openai";
+import { performMarketDiagnosis, formatDiagnosisForPrompt } from "./tavily";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -21,11 +22,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = insertProjectSchema.parse(req.body);
       const project = await storage.createProject(data);
       
-      // Generate strategy cards immediately (no greeting message)
+      // Perform market diagnosis and generate strategy cards immediately
       try {
-        console.log("[Projects] Generating strategy cards immediately...");
+        console.log("[Projects] Starting market diagnosis with Tavily...");
         
-        // Get sales data
+        // Step 1: Tavily market diagnosis
+        let marketDiagnosis;
+        try {
+          marketDiagnosis = await performMarketDiagnosis({
+            productName: project.productName,
+            targetAge: project.targetAge,
+            marketingSeason: project.marketingSeason,
+            currentStatus: project.currentStatus,
+          });
+          
+          // Save diagnosis as a message
+          await storage.createMessage({
+            projectId: project.id,
+            role: "assistant",
+            content: `${project.productName}에 대한 시장 조사를 완료했습니다.\n\n${marketDiagnosis.summary}\n\n이제 맞춤형 전략을 생성합니다...`,
+            metadata: JSON.stringify({ 
+              stage: "diagnosis",
+              diagnosis: {
+                queriesCount: marketDiagnosis.queries.length,
+                resultsCount: marketDiagnosis.results.length,
+              }
+            }),
+          });
+          
+          console.log(`[Projects] Market diagnosis complete: ${marketDiagnosis.results.length} results`);
+        } catch (diagnosisError) {
+          console.error("[Projects] Tavily diagnosis failed, continuing without it:", diagnosisError);
+          marketDiagnosis = null;
+        }
+        
+        // Step 2: Get sales data
         const topProducts = await storage.getTopProducts(10);
         const trendingProducts = topProducts.slice(0, 5).map(p => ({
           ...p,
@@ -42,25 +73,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           trendingProducts,
         };
         
+        // Step 3: Generate strategy cards with market diagnosis context
+        console.log("[Projects] Generating strategy cards with market insights...");
         const strategyCards = await generateStrategyCards({
           productName: project.productName,
           targetAge: project.targetAge,
           marketingSeason: project.marketingSeason,
           currentStatus: project.currentStatus,
-        }, salesContext);
+        }, salesContext, marketDiagnosis);
         
         // Save strategy cards as a message with metadata
         await storage.createMessage({
           projectId: project.id,
           role: "assistant",
-          content: "다음 4가지 카테고리의 핵심 전략을 준비했습니다. 원하시는 전략을 선택해주세요.",
+          content: "시장 분석을 바탕으로 4가지 카테고리의 핵심 전략을 준비했습니다. 원하시는 전략을 선택해주세요.",
           metadata: JSON.stringify({ 
             stage: "strategy_cards",
             cards: strategyCards 
           }),
         });
         
-        console.log("[Projects] Strategy cards generated successfully");
+        console.log("[Projects] Strategy cards generated successfully with market diagnosis");
       } catch (aiError) {
         console.error("AI strategy card generation failed:", aiError);
         // Fallback message

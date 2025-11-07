@@ -72,6 +72,16 @@ export default function Chat() {
     }
   })();
 
+  // Find diagnosis message
+  const diagnosisMessage = messages.find(m => {
+    try {
+      const metadata = m.metadata ? JSON.parse(m.metadata) : {};
+      return metadata.stage === "diagnosis";
+    } catch {
+      return false;
+    }
+  });
+
   // Generate detailed strategy when card is clicked
   const generateDetailMutation = useMutation({
     mutationFn: async ({ category, title }: { category: string; title: string }) => {
@@ -144,6 +154,21 @@ export default function Chat() {
               </div>
             ) : strategyCards.length > 0 ? (
               <div className="space-y-6">
+                {diagnosisMessage && (
+                  <Card className="bg-primary/5 border-primary/20">
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-3">
+                        <Sparkles className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                            {diagnosisMessage.content}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 <div className="text-center mb-8">
                   <h2 className="text-2xl font-bold font-accent mb-2">
                     {project?.productName}의 역바이럴 전략
