@@ -4,10 +4,9 @@ import pLimit from "p-limit";
 import pRetry, { AbortError } from "p-retry";
 import * as prompts from "./prompts";
 
-// This is using Replit's AI Integrations service, which provides OpenAI-compatible API access without requiring your own OpenAI API key.
+// Using OpenAI's API directly with user-provided API key
 const openai = new OpenAI({
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY
 });
 
 // Helper function to check if error is rate limit or quota violation
@@ -51,9 +50,7 @@ export async function generateMarketingResponse(
 
   console.log("[OpenAI] Starting generateMarketingResponse");
   console.log("[OpenAI] Environment:", {
-    hasBaseURL: !!process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-    hasAPIKey: !!process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+    hasAPIKey: !!process.env.OPENAI_API_KEY,
   });
   
   return await pRetry(
@@ -61,7 +58,7 @@ export async function generateMarketingResponse(
       try {
         console.log("[OpenAI] Calling chat.completions.create...");
         const response = await openai.chat.completions.create({
-          model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+          model: "gpt-4.1",
           messages: [
             { role: "system", content: systemPrompt },
             ...messages,
@@ -172,7 +169,7 @@ export async function generateMarketingStrategies(
     async () => {
       try {
         const response = await openai.chat.completions.create({
-          model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+          model: "gpt-4.1",
           messages: [{ role: "user", content: prompt }],
           response_format: { type: "json_object" },
           max_completion_tokens: 4096,
@@ -220,7 +217,7 @@ export async function generateMarketingImage(
     async () => {
       try {
         const response = await openai.images.generate({
-          model: "gpt-image-1",
+          model: "dall-e-3",
           prompt: prompt,
           size: "1024x1024",
         });
@@ -294,7 +291,7 @@ export async function generateGreeting(context: {
   return await pRetry(
     async () => {
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: "gpt-4.1",
         messages: [{ role: "user", content: userPrompt }],
         max_completion_tokens: 500,
       });
@@ -332,7 +329,7 @@ export async function generateDiagnosis(
   return await pRetry(
     async () => {
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: "gpt-4.1",
         messages: [{ role: "user", content: userPrompt }],
         max_completion_tokens: 4096,
       });
@@ -362,7 +359,7 @@ export async function generateCandidates(
   return await pRetry(
     async () => {
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: "gpt-4.1",
         messages: [{ role: "user", content: userPrompt }],
         max_completion_tokens: 4096,
       });
@@ -399,7 +396,7 @@ export async function generateDetailedStrategy(
   return await pRetry(
     async () => {
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: "gpt-4.1",
         messages: [{ role: "user", content: userPrompt }],
         max_completion_tokens: 2048,
       });
