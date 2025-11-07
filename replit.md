@@ -19,8 +19,8 @@ Preferred communication style: Simple, everyday language.
 **Routing**: wouter for client-side routing with four main pages:
 - `/` - Landing page with hero section and feature overview
 - `/survey` - Multi-step form for project creation
-- `/chat/:id` - Conversational AI interface for strategy refinement
-- `/results/:id` - Visual display of generated marketing strategies
+- `/chat/:id` - Card-based strategy selection interface (replaced conversational flow)
+- `/results/:id` - Visual display of generated marketing strategies (legacy)
 
 **UI Component System**: shadcn/ui (Radix UI primitives) with custom "new-york" theme configuration
 - Component library includes 40+ pre-built components
@@ -44,11 +44,11 @@ Preferred communication style: Simple, everyday language.
 **Runtime**: Node.js with Express.js server
 
 **API Design**: RESTful endpoints with JSON responses:
-- `POST /api/projects` - Create new marketing project
+- `POST /api/projects` - Create new marketing project and immediately generate strategy cards
 - `GET /api/projects/:id` - Fetch project details
-- `GET /api/messages/:id` - Retrieve chat history
-- `POST /api/chat/:id` - Send message and get AI response (supports stage-based flow)
-- `GET /api/strategies/:id` - Fetch generated strategies
+- `GET /api/messages/:id` - Retrieve messages with strategy card metadata
+- `POST /api/strategies/detail/:projectId` - Generate detailed strategy for selected card
+- `GET /api/strategies/:id` - Fetch generated strategies (legacy)
 - `GET /api/sales` - Fetch product sales data
 - `GET /api/sales/top` - Get top-ranked products
 
@@ -59,20 +59,21 @@ Preferred communication style: Simple, everyday language.
 - Three core entities: Projects, Messages, Strategies
 
 **AI Integration Architecture**:
-- OpenAI API accessed through Replit's AI Integrations service
-- GPT-4 for conversational marketing strategy generation
-- DALL-E 3 for marketing visual generation (URL-based, not b64_json)
+- OpenAI API accessed directly with OPENAI_API_KEY
+- GPT-4.1 for marketing strategy generation
+- DALL-E 3 for marketing visual generation (currently disabled - placeholder only)
 - **Prompt Engineering System** (server/prompts.ts):
-  - Stage-based prompts: greeting, diagnosis, candidates, detailed strategy
-  - Markdown-formatted responses for readability
-  - JSON parsing for structured data (detailed strategies)
+  - Strategy cards prompt: immediate generation of 4 category cards (시즌마케팅, 콜라보, 네이밍, 굿즈)
+  - Detailed strategy prompt: generates full implementation plan with markdown
+  - JSON parsing for structured data with resilient extraction
   - No generic KPIs/budgets per user requirements
-- Retry logic with exponential backoff for rate limiting
-- Concurrency limiting (5 concurrent requests) for image generation
-- **Conversation Flow Management**:
-  - 4 stages tracked in database: greeting → diagnosis → candidates → detailed
-  - Intent detection from user messages (keywords: 분석, 후보, 선택)
-  - Automatic stage transitions with logging
+- Retry logic with exponential backoff for rate limiting (p-retry)
+- Markdown rendering with ReactMarkdown + remark-gfm on frontend
+- **New Card-Based Flow**:
+  - Project creation → Immediate strategy card generation (no greeting message)
+  - 4 clickable cards displayed with icon, title, summary, viral point
+  - Card selection → Detailed strategy with markdown rendering
+  - Modal/Dialog display for detailed strategies
 
 **Error Handling**: Custom middleware for request logging, JSON parsing with raw body capture, structured error responses
 
