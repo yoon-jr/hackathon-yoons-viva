@@ -339,6 +339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/strategies/generate/:projectId", async (req, res) => {
     try {
       const projectId = req.params.projectId;
+      console.log(`[Strategies] Starting generation for project: ${projectId}`);
       
       const project = await storage.getProject(projectId);
       if (!project) {
@@ -357,6 +358,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const trendingProducts = await storage.getTrendingProducts();
 
       // Generate strategies with sales data context
+      console.log("[Strategies] Generating AI strategies...");
       const strategies = await generateMarketingStrategies(
         {
           productName: project.productName,
@@ -380,8 +382,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })),
         }
       );
+      console.log(`[Strategies] Generated ${strategies.length} strategies`);
 
       // Generate images for all strategies in parallel
+      console.log(`[Strategies] Generating ${strategies.length} marketing images...`);
       const imageRequests = strategies.map(s => ({
         productName: project.productName,
         strategyTitle: s.title,
@@ -389,8 +393,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
 
       const imageBuffers = await generateMarketingImages(imageRequests);
+      console.log(`[Strategies] All images generated successfully`);
 
       // Save strategies with image data URLs
+      console.log("[Strategies] Saving strategies to storage...");
       const savedStrategies = await Promise.all(
         strategies.map(async (strategy, index) => {
           const imageBuffer = imageBuffers[index];
@@ -408,10 +414,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       );
 
+      console.log(`[Strategies] Successfully saved ${savedStrategies.length} strategies with images`);
       res.json({ strategies: savedStrategies });
     } catch (error) {
-      console.error("Error generating strategies:", error);
-      res.status(500).json({ error: "Server error" });
+      console.error("[Strategies] Error generating strategies:", error);
+      console.error("[Strategies] Error details:", {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Server error" 
+      });
     }
   });
 

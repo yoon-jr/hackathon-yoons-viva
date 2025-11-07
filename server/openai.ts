@@ -213,6 +213,8 @@ export async function generateMarketingImage(
   const prompt = `한국 과자 "${productName}"의 마케팅 비주얼 디자인. ${strategyTitle}. ${strategyDescription}. 
 레트로-모던 스타일, 밝고 생동감있는 색상, 80-90년대 한국 과자 패키징 감성, 전문적이고 상업적인 품질. 제품이 돋보이도록.`;
 
+  console.log(`[Image] Generating image for: ${strategyTitle}`);
+
   return await pRetry(
     async () => {
       try {
@@ -220,10 +222,23 @@ export async function generateMarketingImage(
           model: "gpt-image-1",
           prompt: prompt,
           size: "1024x1024",
+          response_format: "b64_json",
         });
+        
+        console.log("[Image] Response received:", {
+          hasData: !!response.data,
+          dataLength: response.data?.length,
+        });
+        
         const base64 = response.data?.[0]?.b64_json ?? "";
+        if (!base64) {
+          throw new Error("No image data received from DALL-E");
+        }
+        
+        console.log(`[Image] Successfully generated image (${base64.length} chars)`);
         return Buffer.from(base64, "base64");
       } catch (error: any) {
+        console.error("[Image] Generation failed:", error);
         if (isRateLimitError(error)) {
           throw error;
         }
