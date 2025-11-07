@@ -75,12 +75,12 @@ export default function Chat() {
     generateStrategiesMutation.mutate();
   };
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom when messages change or loading state changes
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, sendMessageMutation.isPending]);
 
   if (!projectId) {
     return null;
@@ -185,12 +185,15 @@ export default function Chat() {
                   </div>
                 ))}
                 {sendMessageMutation.isPending && (
-                  <div className="flex justify-start" data-testid="message-loading">
+                  <div className="flex justify-start animate-in fade-in-50" data-testid="message-loading">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3 flex-shrink-0">
-                      <Sparkles className="h-5 w-5 text-primary" />
+                      <Sparkles className="h-5 w-5 text-primary animate-pulse" />
                     </div>
-                    <Card className="max-w-[80%] p-4 bg-card">
-                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    <Card className="max-w-[80%] p-4 bg-card border-2 border-primary/20">
+                      <div className="flex items-center gap-3">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        <span className="text-muted-foreground font-medium">AI가 답변을 생성하고 있습니다...</span>
+                      </div>
                     </Card>
                   </div>
                 )}
