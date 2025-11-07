@@ -134,15 +134,19 @@ export default function Results() {
                     <CardTitle className="text-xl">{strategy.title}</CardTitle>
                     <CardDescription>{strategy.description}</CardDescription>
                   </CardHeader>
-                  {strategy.imageUrl && (
-                    <CardContent>
+                  <CardContent>
+                    {strategy.imageUrl ? (
                       <img
                         src={strategy.imageUrl}
                         alt={strategy.title}
-                        className="w-full aspect-video object-cover rounded-md border-2"
+                        className="w-full aspect-video object-cover rounded-md border-2 mb-4"
                       />
-                    </CardContent>
-                  )}
+                    ) : (
+                      <div className="w-full aspect-video bg-muted rounded-md border-2 border-dashed flex items-center justify-center mb-4">
+                        <p className="text-muted-foreground text-sm">이미지 위치 (생성 비활성화)</p>
+                      </div>
+                    )}
+                  </CardContent>
                   <CardContent>
                     <Button
                       variant="outline"
@@ -172,16 +176,20 @@ export default function Results() {
                 <DialogTitle className="text-2xl font-accent">{selectedStrategy.title}</DialogTitle>
               </DialogHeader>
               
-              {selectedStrategy.imageUrl && (
-                <div className="my-4">
+              <div className="my-4">
+                {selectedStrategy.imageUrl ? (
                   <img
                     src={selectedStrategy.imageUrl}
                     alt={selectedStrategy.title}
                     className="w-full rounded-lg border-3"
                     data-testid="img-strategy-detail"
                   />
-                </div>
-              )}
+                ) : (
+                  <div className="w-full aspect-video bg-muted rounded-lg border-3 border-dashed flex items-center justify-center">
+                    <p className="text-muted-foreground">이미지 위치 (생성 비활성화)</p>
+                  </div>
+                )}
+              </div>
 
               <div className="space-y-4">
                 <div>

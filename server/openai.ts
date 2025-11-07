@@ -203,62 +203,16 @@ export async function generateMarketingStrategies(
 }
 
 // Generate image for marketing strategy using DALL-E
+// NOTE: Image generation is disabled - returns empty buffer for placeholder
 export async function generateMarketingImage(
   productName: string,
   strategyTitle: string,
   strategyDescription: string
 ): Promise<Buffer> {
-  const prompt = `한국 과자 "${productName}"의 마케팅 비주얼 디자인. ${strategyTitle}. ${strategyDescription}. 
-레트로-모던 스타일, 밝고 생동감있는 색상, 80-90년대 한국 과자 패키징 감성, 전문적이고 상업적인 품질. 제품이 돋보이도록.`;
-
-  console.log(`[Image] Generating image for: ${strategyTitle}`);
-
-  return await pRetry(
-    async () => {
-      try {
-        const response = await openai.images.generate({
-          model: "dall-e-3",
-          prompt: prompt,
-          size: "1024x1024",
-        });
-        
-        console.log("[Image] Response received:", {
-          hasData: !!response.data,
-          dataLength: response.data?.length,
-        });
-        
-        const imageUrl = response.data?.[0]?.url ?? "";
-        if (!imageUrl) {
-          throw new Error("No image URL received from DALL-E");
-        }
-        
-        console.log(`[Image] Image URL received: ${imageUrl.substring(0, 50)}...`);
-        
-        // Download image and convert to buffer
-        const imageResponse = await fetch(imageUrl);
-        if (!imageResponse.ok) {
-          throw new Error(`Failed to download image: ${imageResponse.statusText}`);
-        }
-        
-        const arrayBuffer = await imageResponse.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        console.log(`[Image] Successfully downloaded image (${buffer.length} bytes)`);
-        return buffer;
-      } catch (error: any) {
-        console.error("[Image] Generation failed:", error);
-        if (isRateLimitError(error)) {
-          throw error;
-        }
-        throw new AbortError(error);
-      }
-    },
-    {
-      retries: 3,
-      minTimeout: 2000,
-      maxTimeout: 15000,
-      factor: 2,
-    }
-  );
+  console.log(`[Image] Placeholder image for: ${strategyTitle} (generation disabled)`);
+  
+  // Return empty buffer - image generation disabled to save costs
+  return Buffer.from([]);
 }
 
 // Generate multiple images in parallel with rate limiting
