@@ -5,8 +5,12 @@ import {
   type InsertMessage,
   type Strategy,
   type InsertStrategy,
+  projects,
+  messages,
+  strategies,
 } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq, desc, asc } from "drizzle-orm";
 
 export interface IStorage {
   // Projects
@@ -23,80 +27,50 @@ export interface IStorage {
   createStrategies(strategies: InsertStrategy[]): Promise<Strategy[]>;
 }
 
-export class MemStorage implements IStorage {
-  private projects: Map<string, Project>;
-  private messages: Map<string, Message>;
-  private strategies: Map<string, Strategy>;
-
-  constructor() {
-    this.projects = new Map();
-    this.messages = new Map();
-    this.strategies = new Map();
-  }
-
+export class PostgresStorage implements IStorage {
   // Projects
   async getProject(id: string): Promise<Project | undefined> {
-    return this.projects.get(id);
+    const result = await db.select().from(projects).where(eq(projects.id, id));
+    return result[0];
   }
 
   async createProject(insertProject: InsertProject): Promise<Project> {
-    const id = randomUUID();
-    const project: Project = {
-      ...insertProject,
-      id,
-      createdAt: new Date(),
-    };
-    this.projects.set(id, project);
-    return project;
+    const result = await db.insert(projects).values(insertProject).returning();
+    return result[0];
   }
 
   // Messages
   async getMessages(projectId: string): Promise<Message[]> {
-    return Array.from(this.messages.values())
-      .filter((message) => message.projectId === projectId)
-      .sort((a, b) => {
-        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return aTime - bTime;
-      });
+    return await db
+      .select()
+      .from(messages)
+      .where(eq(messages.projectId, projectId))
+      .orderBy(asc(messages.createdAt));
   }
 
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
-    const id = randomUUID();
-    const message: Message = {
-      ...insertMessage,
-      id,
-      createdAt: new Date(),
-    };
-    this.messages.set(id, message);
-    return message;
+    const result = await db.insert(messages).values(insertMessage).returning();
+    return result[0];
   }
 
   // Strategies
   async getStrategies(projectId: string): Promise<Strategy[]> {
-    return Array.from(this.strategies.values())
-      .filter((strategy) => strategy.projectId === projectId)
-      .sort((a, b) => {
-        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return bTime - aTime;
-      });
+    return await db
+      .select()
+      .from(strategies)
+      .where(eq(strategies.projectId, projectId))
+      .orderBy(desc(strategies.createdAt));
   }
 
   async createStrategy(insertStrategy: InsertStrategy): Promise<Strategy> {
-    const id = randomUUID();
-    const strategy: Strategy = {
-      ...insertStrategy,
-      id,
-      createdAt: new Date(),
-    };
-    this.strategies.set(id, strategy);
-    return strategy;
+    const result = await db.insert(strategies).values(insertStrategy).returning();
+    return result[0];
   }
 
-  async createStrategies(strategies: InsertStrategy[]): Promise<Strategy[]> {
-    return Promise.all(strategies.map((s) => this.createStrategy(s)));
+  async createStrategies(insertStrategies: InsertStrategy[]): Promise<Strategy[]> {
+    const result = await db.insert(strategies).values(insertStrategies).returning();
+    return result;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new PostgresStorage();
