@@ -2,7 +2,15 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertProjectSchema, insertMessageSchema } from "@shared/schema";
-import { generateMarketingResponse, generateMarketingStrategies, generateMarketingImages } from "./openai";
+import { 
+  generateMarketingResponse, 
+  generateMarketingStrategies, 
+  generateMarketingImages,
+  generateGreeting,
+  generateDiagnosis,
+  generateCandidates,
+  generateDetailedStrategy
+} from "./openai";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -12,30 +20,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = insertProjectSchema.parse(req.body);
       const project = await storage.createProject(data);
       
-      // Create initial AI greeting message
+      // Create initial AI greeting using new prompt system
       try {
-        const greeting = await generateMarketingResponse(
-          [],
-          {
-            productName: project.productName,
-            targetAge: project.targetAge,
-            marketingSeason: project.marketingSeason,
-            currentStatus: project.currentStatus,
-          }
-        );
+        const greeting = await generateGreeting({
+          productName: project.productName,
+          targetAge: project.targetAge,
+          marketingSeason: project.marketingSeason,
+          currentStatus: project.currentStatus,
+        });
         
         await storage.createMessage({
           projectId: project.id,
           role: "assistant",
           content: greeting,
+          metadata: JSON.stringify({ stage: "greeting" }),
         });
       } catch (aiError) {
         console.error("AI greeting generation failed:", aiError);
-        // Continue anyway - greeting can be generated later
+        // Fallback greeting
         await storage.createMessage({
           projectId: project.id,
           role: "assistant",
-          content: `안녕하세요! ${project.productName}의 역바이럴 마케팅을 도와드리겠습니다. 어떤 아이디어를 함께 발전시켜볼까요?`,
+          content: `안녕하세요! ${project.productName}의 역바이럴 마케팅을 함께 시작하겠습니다.\n\n먼저 제품과 시장을 분석한 후, 맞춤 전략을 제안해드리겠습니다.\n\n**"분석 시작"**이라고 말씀해주시면 시작하겠습니다!`,
+          metadata: JSON.stringify({ stage: "greeting" }),
         });
       }
       
@@ -82,10 +89,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Send a chat message and get AI response
+  // Send a chat message and get AI response (NEW: Stage-based flow)
   app.post("/api/chat/:projectId", async (req, res) => {
     try {
-      const { content } = z.object({ content: z.string() }).parse(req.body);
+      const { content, action } = z.object({ 
+        content: z.string(),
+        action: z.string().optional(), // "start_diagnosis", "show_candidates", "select_strategy"
+      }).parse(req.body);
       const projectId = req.params.projectId;
       
       const project = await storage.getProject(projectId);
@@ -100,46 +110,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content,
       });
 
-      // Get conversation history
-      const messages = await storage.getMessages(projectId);
-      const conversationHistory = messages.map(m => ({
-        role: m.role as "user" | "assistant",
-        content: m.content,
-      }));
+      const currentStage = project.conversationStage || "greeting";
+      console.log(`[Chat] Current stage: ${currentStage}, Action: ${action || "none"}`);
 
-      console.log("[Chat] Generating AI response for project:", projectId);
-      console.log("[Chat] Environment check:", {
-        hasBaseURL: !!process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-        hasAPIKey: !!process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-      });
-
-      // Generate AI response
       let aiResponse: string;
+      let newStage = currentStage;
+      let responseMetadata: any = { stage: currentStage };
+
+      // Determine next action based on content or explicit action
+      const userIntent = action || detectUserIntent(content);
+
       try {
-        aiResponse = await generateMarketingResponse(
-          conversationHistory,
-          {
-            productName: project.productName,
-            targetAge: project.targetAge,
-            marketingSeason: project.marketingSeason,
-            currentStatus: project.currentStatus,
-          }
-        );
-        console.log("[Chat] AI response generated successfully");
+        if (userIntent === "start_diagnosis") {
+          // Stage 1: Diagnosis
+          console.log("[Chat] Starting diagnosis...");
+          const topProducts = await storage.getTopProducts(10);
+          const trendingProducts = await storage.getTrendingProducts();
+          
+          const salesData = {
+            topProducts: topProducts.map(p => ({
+              productName: p.productName,
+              rank: p.rank || "N/A",
+              monthlySales: p.monthlySales,
+              category: p.category,
+            })),
+            trendingProducts: trendingProducts.map(p => ({
+              productName: p.productName,
+              trendScore: p.trendScore,
+              category: p.category,
+              monthlySales: p.monthlySales,
+            })),
+          };
+          
+          aiResponse = await generateDiagnosis(
+            {
+              productName: project.productName,
+              targetAge: project.targetAge,
+              marketingSeason: project.marketingSeason,
+              currentStatus: project.currentStatus,
+            },
+            salesData
+          );
+          
+          newStage = "diagnosis";
+          responseMetadata = { stage: "diagnosis" };
+          
+        } else if (userIntent === "show_candidates") {
+          // Stage 2: Candidates
+          console.log("[Chat] Generating candidates...");
+          const messages = await storage.getMessages(projectId);
+          const conversationSummary = messages
+            .slice(-5)
+            .map((m) => `${m.role}: ${m.content.substring(0, 200)}`)
+            .join("\n");
+          
+          aiResponse = await generateCandidates(
+            {
+              productName: project.productName,
+              targetAge: project.targetAge,
+              marketingSeason: project.marketingSeason,
+              currentStatus: project.currentStatus,
+            },
+            conversationSummary
+          );
+          
+          newStage = "candidates";
+          responseMetadata = { stage: "candidates" };
+          
+        } else {
+          // General conversation
+          const messages = await storage.getMessages(projectId);
+          const conversationHistory = messages
+            .filter(m => m.role !== "system")
+            .map((m) => ({
+              role: m.role as "user" | "assistant",
+              content: m.content,
+            }));
+          
+          aiResponse = await generateMarketingResponse(
+            conversationHistory,
+            {
+              productName: project.productName,
+              targetAge: project.targetAge,
+              marketingSeason: project.marketingSeason,
+              currentStatus: project.currentStatus,
+            }
+          );
+        }
+        
+        console.log(`[Chat] Response generated, new stage: ${newStage}`);
       } catch (aiError) {
         console.error("[Chat] AI generation failed:", aiError);
-        console.error("[Chat] Error details:", {
-          message: aiError instanceof Error ? aiError.message : String(aiError),
-          stack: aiError instanceof Error ? aiError.stack : undefined,
-        });
         throw aiError;
       }
 
-      // Save AI message
+      // Update project stage if changed
+      if (newStage !== currentStage) {
+        console.log(`[Chat] Updating stage from '${currentStage}' to '${newStage}'`);
+        await storage.updateProjectStage(projectId, newStage);
+        console.log(`[Chat] Stage updated successfully`);
+      } else {
+        console.log(`[Chat] Stage unchanged: ${currentStage}`);
+      }
+
+      // Save AI message with metadata
       await storage.createMessage({
         projectId,
         role: "assistant",
         content: aiResponse,
+        metadata: JSON.stringify(responseMetadata),
       });
 
       // Return updated messages
@@ -147,9 +226,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ messages: updatedMessages });
     } catch (error) {
       console.error("Error in chat:", error);
-      res.status(500).json({ error: "Server error" });
+      res.status(500).json({ error: error instanceof Error ? error.message : "Server error" });
     }
   });
+
+  // Helper function to detect user intent from message content
+  function detectUserIntent(content: string): string | null {
+    const lowerContent = content.toLowerCase();
+    
+    if (lowerContent.includes("분석") || lowerContent.includes("진단") || lowerContent.includes("시작")) {
+      return "start_diagnosis";
+    }
+    
+    if (lowerContent.includes("후보") || lowerContent.includes("전략") || lowerContent.includes("카테고리") || lowerContent.includes("아이디어")) {
+      return "show_candidates";
+    }
+    
+    return null;
+  }
 
   // Product Sales API - Get sales data
   app.get("/api/sales", async (req, res) => {

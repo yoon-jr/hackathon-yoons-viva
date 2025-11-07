@@ -20,6 +20,7 @@ export interface IStorage {
   getProject(id: string): Promise<Project | undefined>;
   getAllProjects(): Promise<Project[]>;
   createProject(project: InsertProject): Promise<Project>;
+  updateProjectStage(id: string, stage: string): Promise<Project | undefined>;
   
   // Messages
   getMessages(projectId: string): Promise<Message[]>;
@@ -50,7 +51,19 @@ export class PostgresStorage implements IStorage {
   }
 
   async createProject(insertProject: InsertProject): Promise<Project> {
-    const result = await db.insert(projects).values(insertProject).returning();
+    const result = await db.insert(projects).values({
+      ...insertProject,
+      conversationStage: "greeting",
+    }).returning();
+    return result[0];
+  }
+
+  async updateProjectStage(id: string, stage: string): Promise<Project | undefined> {
+    const result = await db
+      .update(projects)
+      .set({ conversationStage: stage })
+      .where(eq(projects.id, id))
+      .returning();
     return result[0];
   }
 

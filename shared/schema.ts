@@ -10,6 +10,7 @@ export const projects = pgTable("projects", {
   targetAge: text("target_age").notNull(), // "10대", "20대", "30대"
   marketingSeason: text("marketing_season").notNull(), // "수능시즌", "여름", "연말"
   currentStatus: text("current_status").notNull(), // "성공", "실패", "비바이럴"
+  conversationStage: text("conversation_stage").notNull().default("greeting"), // "greeting", "diagnosis", "candidates", "detailed"
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -17,8 +18,9 @@ export const projects = pgTable("projects", {
 export const messages = pgTable("messages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   projectId: varchar("project_id").notNull().references(() => projects.id),
-  role: text("role").notNull(), // "user" or "assistant"
+  role: text("role").notNull(), // "user", "assistant", or "system"
   content: text("content").notNull(),
+  metadata: text("metadata"), // JSON string for additional data (e.g., {type: "candidates", selectedStrategy: "콜라보"})
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -86,5 +88,6 @@ export type InsertProductSales = z.infer<typeof insertProductSalesSchema>;
 export type AgeGroup = "10대" | "20대" | "30대";
 export type MarketingSeason = "수능시즌" | "여름" | "연말" | "명절" | "기타";
 export type ProductStatus = "성공" | "실패" | "비바이럴";
-export type StrategyType = "콜라보" | "네이밍" | "캠페인" | "시즌마케팅";
+export type StrategyType = "콜라보" | "네이밍" | "캠페인" | "시즌마케팅" | "시즌" | "굿즈";
 export type TrendScore = "상승" | "하락" | "유지";
+export type ConversationStage = "greeting" | "diagnosis" | "candidates" | "detailed";

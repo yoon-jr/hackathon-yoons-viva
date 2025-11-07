@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { Buffer } from "node:buffer";
 import pLimit from "p-limit";
 import pRetry, { AbortError } from "p-retry";
+import * as prompts from "./prompts";
 
 // This is using Replit's AI Integrations service, which provides OpenAI-compatible API access without requiring your own OpenAI API key.
 const openai = new OpenAI({
@@ -222,7 +223,6 @@ export async function generateMarketingImage(
           model: "gpt-image-1",
           prompt: prompt,
           size: "1024x1024",
-          response_format: "b64_json",
         });
         
         console.log("[Image] Response received:", {
@@ -230,13 +230,23 @@ export async function generateMarketingImage(
           dataLength: response.data?.length,
         });
         
-        const base64 = response.data?.[0]?.b64_json ?? "";
-        if (!base64) {
-          throw new Error("No image data received from DALL-E");
+        const imageUrl = response.data?.[0]?.url ?? "";
+        if (!imageUrl) {
+          throw new Error("No image URL received from DALL-E");
         }
         
-        console.log(`[Image] Successfully generated image (${base64.length} chars)`);
-        return Buffer.from(base64, "base64");
+        console.log(`[Image] Image URL received: ${imageUrl.substring(0, 50)}...`);
+        
+        // Download image and convert to buffer
+        const imageResponse = await fetch(imageUrl);
+        if (!imageResponse.ok) {
+          throw new Error(`Failed to download image: ${imageResponse.statusText}`);
+        }
+        
+        const arrayBuffer = await imageResponse.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        console.log(`[Image] Successfully downloaded image (${buffer.length} bytes)`);
+        return buffer;
       } catch (error: any) {
         console.error("[Image] Generation failed:", error);
         if (isRateLimitError(error)) {
@@ -269,4 +279,148 @@ export async function generateMarketingImages(
   );
   
   return await Promise.all(imagePromises);
+}
+
+// NEW: Structured conversation flow functions using prompt engineering
+
+export async function generateGreeting(context: {
+  productName: string;
+  targetAge: string;
+  marketingSeason: string;
+  currentStatus: string;
+}): Promise<string> {
+  const userPrompt = prompts.generateGreetingPrompt(context);
+  
+  return await pRetry(
+    async () => {
+      const response = await openai.chat.completions.create({
+        model: "gpt-5",
+        messages: [{ role: "user", content: userPrompt }],
+        max_completion_tokens: 500,
+      });
+      return response.choices[0]?.message?.content || "안녕하세요! 마케팅 전략을 함께 만들어보겠습니다.";
+    },
+    { retries: 2, minTimeout: 1000, maxTimeout: 5000 }
+  );
+}
+
+export async function generateDiagnosis(
+  context: {
+    productName: string;
+    targetAge: string;
+    marketingSeason: string;
+    currentStatus: string;
+  },
+  salesContext: {
+    topProducts: Array<{
+      productName: string;
+      rank: string;
+      monthlySales: string;
+      category: string;
+    }>;
+    trendingProducts: Array<{
+      productName: string;
+      trendScore: string;
+      category: string;
+      monthlySales: string;
+    }>;
+  }
+): Promise<string> {
+  const userPrompt = prompts.generateDiagnosisPrompt(context, salesContext);
+  
+  console.log("[Diagnosis] Generating product analysis...");
+  return await pRetry(
+    async () => {
+      const response = await openai.chat.completions.create({
+        model: "gpt-5",
+        messages: [{ role: "user", content: userPrompt }],
+        max_completion_tokens: 4096,
+      });
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error("No diagnosis content received");
+      }
+      console.log("[Diagnosis] Analysis generated successfully");
+      return content;
+    },
+    { retries: 3, minTimeout: 2000, maxTimeout: 10000 }
+  );
+}
+
+export async function generateCandidates(
+  context: {
+    productName: string;
+    targetAge: string;
+    marketingSeason: string;
+    currentStatus: string;
+  },
+  conversationSummary: string
+): Promise<string> {
+  const userPrompt = prompts.generateCandidatePrompt(context, conversationSummary);
+  
+  console.log("[Candidates] Generating marketing candidates...");
+  return await pRetry(
+    async () => {
+      const response = await openai.chat.completions.create({
+        model: "gpt-5",
+        messages: [{ role: "user", content: userPrompt }],
+        max_completion_tokens: 4096,
+      });
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error("No candidates content received");
+      }
+      console.log("[Candidates] Candidates generated successfully");
+      return content;
+    },
+    { retries: 3, minTimeout: 2000, maxTimeout: 10000 }
+  );
+}
+
+export async function generateDetailedStrategy(
+  context: {
+    productName: string;
+    targetAge: string;
+    marketingSeason: string;
+    currentStatus: string;
+  },
+  strategyType: "시즌" | "콜라보" | "네이밍" | "굿즈",
+  strategyTitle: string
+): Promise<{
+  type: string;
+  title: string;
+  description: string;
+  details: string;
+  hashtags: string;
+}> {
+  const userPrompt = prompts.generateDetailedStrategyPrompt(context, strategyType, strategyTitle);
+  
+  console.log(`[DetailedStrategy] Generating details for: ${strategyTitle}`);
+  return await pRetry(
+    async () => {
+      const response = await openai.chat.completions.create({
+        model: "gpt-5",
+        messages: [{ role: "user", content: userPrompt }],
+        max_completion_tokens: 2048,
+      });
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error("No detailed strategy content received");
+      }
+      
+      // Extract JSON from markdown code block if present
+      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+      const jsonString = jsonMatch ? jsonMatch[1] : content;
+      
+      try {
+        const parsed = JSON.parse(jsonString);
+        console.log("[DetailedStrategy] Strategy details generated successfully");
+        return parsed;
+      } catch (e) {
+        console.error("[DetailedStrategy] Failed to parse JSON:", e);
+        throw new Error("Failed to parse strategy JSON");
+      }
+    },
+    { retries: 3, minTimeout: 2000, maxTimeout: 10000 }
+  );
 }
