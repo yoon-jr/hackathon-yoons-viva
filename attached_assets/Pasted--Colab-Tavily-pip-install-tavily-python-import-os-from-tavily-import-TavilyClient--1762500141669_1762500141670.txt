@@ -6,7 +6,7 @@ from tavily import TavilyClient
 import time # API 연속 호출 시 잠시 대기하기 위함
 
 # 🚨 중요: 여기에 사용자님의 'Tavily API 키'를 입력하세요.
-os.environ["TAVILY_API_KEY"] = "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"
+client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 
 try:
     client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
